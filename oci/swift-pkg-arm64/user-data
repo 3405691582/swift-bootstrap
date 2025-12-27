@@ -1,0 +1,31 @@
+#cloud-config
+timezone: US/Eastern
+write_files:
+- content: |
+    set -ex
+    function atexit { halt -p; }
+    trap atexit EXIT
+    sysctl -w ddb.panic=0
+    printf '\033\143'
+    newfs /dev/rsd2c
+    mount /dev/sd2c /mnt
+    mkdir /mnt/cidata/
+    mount /dev/sd3c /mnt/cidata
+    mkdir /mnt/tmp/
+    export PATH=/usr/local/bin:$PATH TMPDIR=/mnt/tmp/ HOME=/mnt/
+    pkg_add bash ninja python%3 e2fsprogs libxml curl rsync--minimal cmake
+    ftp -o /mnt/ports.tar.gz $(cloud-init query ds.meta_data.ports)
+    tar xzf /mnt/ports.tar.gz -C /mnt/
+    patch -d /mnt/ports -p1 -i /mnt/cidata/port.diff
+    sysctl -w kern.maxfiles=28000
+    ulimit -d unlimited -n unlimited
+    env PORTSDIR=/mnt/ports make -C /mnt/ports/lang/swift/ makesum
+    env PORTSDIR=/mnt/ports make -C /mnt/ports/lang/swift/ bootstrap
+    env PORTSDIR=/mnt/ports make -C /mnt/ports/lang/swift/
+    env PORTSDIR=/mnt/ports make -C /mnt/ports/lang/swift/ fake
+    env PORTSDIR=/mnt/ports make -C /mnt/ports/lang/swift/ package
+    tar cvf /dev/sd1c -C /mnt/ports/packages/amd64/all/ swift-6.2.0.tgz swift-libdispatch-6.2.0.tgz swift-foundation-6.2.0.tgz swift-xctest-6.2.0.tgz swift-swiftpm-6.2.0.tgz swift-testing-6.2.0.tgz
+    df -h
+    halt -p
+  path: /etc/rc.local
+  permissions: '0755'
