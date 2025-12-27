@@ -1,0 +1,23 @@
+#cloud-config
+timezone: US/Eastern
+write_files:
+- content: |
+    set -ex
+    function atexit { halt -p; }
+    trap atexit EXIT
+    printf '\033\143'
+    pkg_add bash cmake ninja python%3 e2fsprogs libxml curl rsync--minimal zstd git
+    mount /dev/sd3c /mnt
+    pkg_add -Dunsigned \
+        /mnt/swift-6.2.0.tgz \
+        /mnt/swift-stdlib-6.2.0.tgz \
+        /mnt/swift-foundation-6.2.0.tgz \
+        /mnt/swift-libdispatch-6.2.0.tgz \
+        /mnt/swift-xctest-6.2.0.tgz \
+        /mnt/swift-testing-6.2.0.tgz \
+        /mnt/swift-swiftpm-6.2.0.tgz
+    echo '/usr/local/bin/cloud-init init -l' > /etc/rc.firsttime
+    rm -rf /etc/rc.local /var/lib/cloud/instances/
+    halt -p
+  path: /etc/rc.local
+  permissions: '0755'
