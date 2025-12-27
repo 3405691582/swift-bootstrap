@@ -1,0 +1,43 @@
+FROM alpine AS a
+RUN apk add xorriso qemu-system-x86_64 qemu-img
+COPY meta-data user-data /usr/local/share/cidata/
+COPY --from=ghcr.io/3405691582/swift-bootstrap/swift-pkg-amd64:latest \
+    /usr/local/share/swift/ /usr/local/share/cidata/
+COPY --from=ghcr.io/3405691582/openbsd-amd64:7.8 \
+    /usr/local/share/openbsd/os.qcow2 /usr/local/share/vm/os.qcow2
+ENV CPU=2 MEM=4G KVM="" SCRATCH=128K TAPE=128K
+RUN echo 'xorriso -volid CIDATA -joliet on -rockridge on \
+      -outdev /usr/local/share/vm/localds.img \
+      -map /usr/local/share/cidata/ / && \
+    qemu-img create -f qcow2 /usr/local/share/vm/scratch.qcow2 ${SCRATCH} && \
+    qemu-img create -f qcow2 /usr/local/share/vm/tape.qcow2 ${TAPE} && \
+    qemu-system-x86_64 \
+      ${KVM} \
+      -smp ${CPU} \
+      -m ${MEM} \
+      -nodefaults -no-user-config -nographic \
+      -serial stdio \
+      -nic user,model=virtio-net-pci \
+      -drive id=os,file=/usr/local/share/vm/os.qcow2,format=qcow2,if=none \
+      -device virtio-blk-pci,drive=os \
+      -drive id=tape,file=/usr/local/share/vm/tape.qcow2,format=qcow2,if=none \
+      -device virtio-blk-pci,drive=tape \
+      -drive id=scratch,file=/usr/local/share/vm/scratch.qcow2,format=qcow2,if=none \
+      -device virtio-blk-pci,drive=scratch \
+      -drive id=cidata,file=/usr/local/share/vm/localds.img,format=raw,if=none \
+      -device virtio-blk-pci,drive=cidata && \
+    qemu-img convert -f qcow2 -O raw \
+      /usr/local/share/vm/tape.qcow2 /usr/local/share/vm/tape.tar && \
+    tar x -C /usr/local/share/tape/ -vf /usr/local/share/vm/tape.tar' > /usr/local/bin/cmd.sh && \
+    chmod +x /usr/local/bin/cmd.sh
+RUN mkdir /usr/local/share/tape && /usr/local/bin/cmd.sh
+
+FROM alpine
+RUN apk add xorriso qemu-system-x86_64 qemu-img
+LABEL org.opencontainers.image.source=https://github.com/3405691582/swift-bootstrap
+LABEL org.opencontainers.image.description 'QEMU container wrapper for running Swift on OpenBSD/amd64.'
+VOLUME /usr/local/share/vm/ /usr/local/share/tape/ /usr/local/share/cidata/
+COPY --from=a /usr/local/share/vm/os.qcow2 /usr/local/share/vm
+COPY --from=a /usr/local/bin/cmd.sh /usr/local/bin/
+ENV CPU=2 MEM=4G KVM="" SCRATCH=128K TAPE=128K
+CMD /usr/local/bin/cmd.sh

@@ -1,0 +1,46 @@
+ARG OSREV=7.8
+FROM ghcr.io/3405691582/openbsd-arm64:${OSREV} AS openbsd-arm64
+
+FROM alpine AS cidata-img
+RUN apk add xorriso
+WORKDIR /usr/local/share/cidata
+COPY user-data meta-data .
+COPY --from=port port.diff .
+RUN xorriso -volid CIDATA -joliet on -rockridge on -outdev localds.img -map . /
+
+FROM alpine AS a
+RUN apk add qemu-system-aarch64 qemu-img
+VOLUME /usr/local/share/vm/
+WORKDIR /usr/local/share/vm/
+ARG OSREV=latest
+ADD http://cdn.openbsd.org/pub/OpenBSD/7.8/packages/aarch64/u-boot-aarch64-2021.10p11.tgz /tmp
+RUN tar xzvf /tmp/u-boot-aarch64-2021.10p11.tgz share/u-boot/qemu_arm64/u-boot.bin -C /tmp
+COPY --from=openbsd-arm64 /usr/local/share/openbsd/os.qcow2 os.qcow2
+COPY --from=cidata-img /usr/local/share/cidata/localds.img localds.img
+ARG CPU=16 MEM=64G KVM=-enable-kvm SCRATCH=64G TAPE=2G
+RUN qemu-img create -f qcow2 scratch.qcow2 ${SCRATCH} && \
+    qemu-img create -f qcow2 out.qcow2 ${TAPE} && \
+    qemu-system-aarch64 -M virt \
+        ${KVM} -cpu host \
+        -smp ${CPU} \
+        -m ${MEM} \
+        -nodefaults -no-user-config -nographic \
+        -serial stdio \
+        -bios /tmp/share/u-boot/qemu_arm64/u-boot.bin \
+        -nic user,model=virtio-net-pci \
+        -drive id=os,file=/usr/local/share/vm/os.qcow2,format=qcow2,if=none \
+        -device virtio-blk-pci,drive=os \
+        -drive id=out,file=/usr/local/share/vm/out.qcow2,format=qcow2,if=none \
+        -device virtio-blk-pci,drive=out \
+        -drive id=scratch,file=/usr/local/share/vm/scratch.qcow2,format=qcow2,if=none \
+        -device virtio-blk-pci,drive=scratch \
+        -drive id=cidata,file=/usr/local/share/vm/localds.img,format=raw,if=none \
+        -device virtio-blk-pci,drive=cidata && \
+    qemu-img convert -f qcow2 -O raw out.qcow2 out.tar && \
+    mkdir /usr/local/share/tape/ && \
+    tar x -C /usr/local/share/tape/ -vf out.tar
+
+FROM scratch
+LABEL org.opencontainers.image.source=https://github.com/3405691582/swift-bootstrap
+LABEL org.opencontainers.image.description="OpenBSD/arm64 binary packages for Swift."
+COPY --from=a /usr/local/share/tape/ /usr/local/share/swift/
