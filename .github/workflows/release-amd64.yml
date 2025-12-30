@@ -1,0 +1,39 @@
+# This job will not complete in time, as on a 4-core standard runner,
+# it exceeds the 6h limit enforced by GitHub Actions.
+#
+# The job is still defined here for reference.
+name: Release (amd64)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release-amd64:
+    runs-on: amd64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Local file edits for Docker compatibility
+        run: |
+            sed -i -e '/RUN qemu-img/s/RUN/RUN --security=insecure/' \
+                $GITHUB_WORKSPACE/oci/swift-pkg-amd64/Containerfile
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-flags: "--allow-insecure-entitlement security.insecure"
+
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          allow: security.insecure
+          build-args: |
+              CPU=4
+              MEM=16G
+              KVM=-enable-kvm
+          context: "./oci/swift-pkg-amd64"
+          file: "./oci/swift-pkg-amd64/Containerfile"
+          build-contexts: |
+              port=.
+          tags: swift-pkg-amd64-workflow:latest
