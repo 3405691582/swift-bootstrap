@@ -1,0 +1,5 @@
+{
+  "instance-id": "iid-local01",
+  "dsmode": "local",
+  "ports": "https://cdn.openbsd.org/pub/OpenBSD/7.8/ports.tar.gz"
+}

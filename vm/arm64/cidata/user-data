@@ -24,7 +24,7 @@ write_files:
     env PORTSDIR=/mnt/ports make -C /mnt/ports/lang/swift/
     env PORTSDIR=/mnt/ports make -C /mnt/ports/lang/swift/ fake
     env PORTSDIR=/mnt/ports make -C /mnt/ports/lang/swift/ package
-    tar cvf /dev/sd1c -C /mnt/ports/packages/amd64/all/ swift-6.2.0.tgz swift-libdispatch-6.2.0.tgz swift-foundation-6.2.0.tgz swift-xctest-6.2.0.tgz swift-swiftpm-6.2.0.tgz swift-testing-6.2.0.tgz
+    tar cvf /dev/sd1c -C /mnt/ports/packages/aarch64/all/ swift-6.2.0.tgz swift-libdispatch-6.2.0.tgz swift-foundation-6.2.0.tgz swift-xctest-6.2.0.tgz swift-swiftpm-6.2.0.tgz swift-testing-6.2.0.tgz
     df -h
     halt -p
   path: /etc/rc.local

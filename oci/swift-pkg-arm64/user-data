@@ -16,7 +16,7 @@ write_files:
     pkg_add bash ninja python%3 e2fsprogs libxml curl rsync--minimal cmake
     ftp -o /mnt/ports.tar.gz $(cloud-init query ds.meta_data.ports)
     tar xzf /mnt/ports.tar.gz -C /mnt/
-    patch -d /mnt/ports -p1 -i /mnt/cidata/port.diff
+    patch -d /mnt/ports -p0 -i /mnt/cidata/port.diff
     sysctl -w kern.maxfiles=28000
     ulimit -d unlimited -n unlimited
     env PORTSDIR=/mnt/ports make -C /mnt/ports/lang/swift/ makesum
