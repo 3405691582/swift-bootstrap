@@ -19,6 +19,7 @@ write_files:
     patch -d /mnt/ports -p0 -i /mnt/cidata/port.diff
     sysctl -w kern.maxfiles=28000
     ulimit -d unlimited -n unlimited
+    env PORTSDIR=/mnt/ports make -C /mnt/ports/lang/swift/ bootstrap
     env PORTSDIR=/mnt/ports make -C /mnt/ports/lang/swift/ bootstrap-package
     tar cvf /dev/sd1c -C /mnt/ports/pobj/swift-6.2.4/ swift-bootstrap-6.2.4-amd64.tar.gz
     df -h

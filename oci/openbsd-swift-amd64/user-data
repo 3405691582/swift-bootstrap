@@ -9,13 +9,16 @@ write_files:
     pkg_add bash cmake ninja python%3 e2fsprogs libxml curl rsync--minimal zstd git
     mount /dev/sd3c /mnt
     pkg_add -Dunsigned \
-        /mnt/swift-6.2.0.tgz \
-        /mnt/swift-stdlib-6.2.0.tgz \
-        /mnt/swift-foundation-6.2.0.tgz \
-        /mnt/swift-libdispatch-6.2.0.tgz \
-        /mnt/swift-xctest-6.2.0.tgz \
-        /mnt/swift-testing-6.2.0.tgz \
-        /mnt/swift-swiftpm-6.2.0.tgz
+        /mnt/swift-6.2.4.tgz \
+        /mnt/swift-docc-6.2.4.tgz \
+        /mnt/swift-format-6.2.4.tgz \
+        /mnt/swift-foundation-6.2.4.tgz \
+        /mnt/swift-libdispatch-6.2.4.tgz \
+        /mnt/swift-sourcekit-lsp-6.2.4.tgz \
+        /mnt/swift-stdlib-6.2.4.tgz \
+        /mnt/swift-swiftpm-6.2.4.tgz \
+        /mnt/swift-testing-6.2.4.tgz \
+        /mnt/swift-xctest-6.2.4.tgz
     echo '/usr/local/bin/cloud-init init -l' > /etc/rc.firsttime
     rm -rf /etc/rc.local /var/lib/cloud/instances/
     halt -p
