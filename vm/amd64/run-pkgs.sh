@@ -4,7 +4,7 @@ mkdir -p cidata
 cp ../../port.diff cidata/
 cp ../../oci/swift-pkg-amd64/user-data cidata/
 cp ../../oci/swift-pkg-amd64/meta-data cidata/
-xorriso -volid CIDATA -joliet on -rockridge on -outdev localds.img -map ./cidata-pkgs/ /
+xorriso -volid CIDATA -joliet on -rockridge on -outdev localds.img -map ./cidata/ /
 rm -rf cidata
 qemu-img create -f qcow2 scratch.qcow2 64G
 qemu-img create -f qcow2 tape-pkgs.qcow2 2G

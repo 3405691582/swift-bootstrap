@@ -19,9 +19,10 @@ write_files:
     patch -d /mnt/ports -p0 -i /mnt/cidata/port.diff
     sysctl -w kern.maxfiles=28000
     ulimit -d unlimited -n unlimited
+    env PORTSDIR=/mnt/ports make -C /mnt/ports/lang/swift/ makesum
     env PORTSDIR=/mnt/ports make -C /mnt/ports/lang/swift/ fake
-    env PORTSDIR=/mnt/ports make -C /mnt/ports/lang/swift/ package
-    tar cvf /dev/sd1c -C /mnt/ports/packages/amd64/all/ swift-6.2.4.tgz swift-docc-6.2.4.tgz swift-format-6.2.4.tgz swift-foundation-6.2.4.tgz swift-libdispatch-6.2.4.tgz swift-sourcekit-lsp-6.2.4.tgz swift-stdlib-6.2.4.tgz swift-swiftpm-6.2.4.tgz swift-testing-6.2.4.tgz swift-xctest-6.2.4.tgz
+    env PORTSDIR=/mnt/ports PKG_CREATE_NO_CHECKS=Warn make -C /mnt/ports/lang/swift/ package
+    tar cvf /dev/sd1c -C /mnt/ports/packages/amd64/all/ swift-6.3.1.tgz swift-docc-6.3.1.tgz swift-format-6.3.1.tgz swift-foundation-6.3.1.tgz swift-libdispatch-6.3.1.tgz swift-sourcekit-lsp-6.3.1.tgz swift-stdlib-6.3.1.tgz swift-swiftpm-6.3.1.tgz swift-testing-6.3.1.tgz swift-xctest-6.3.1.tgz
     df -h
     halt -p
   path: /etc/rc.local

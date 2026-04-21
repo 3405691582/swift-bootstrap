@@ -1,7 +1,7 @@
 FROM alpine AS a
 RUN apk add xorriso qemu-system-x86_64 qemu-img
 COPY meta-data user-data /usr/local/share/cidata/
-COPY swift-6.2.4.tgz swift-docc-6.2.4.tgz swift-format-6.2.4.tgz swift-foundation-6.2.4.tgz swift-libdispatch-6.2.4.tgz swift-sourcekit-lsp-6.2.4.tgz swift-stdlib-6.2.4.tgz swift-swiftpm-6.2.4.tgz swift-testing-6.2.4.tgz swift-xctest-6.2.4.tgz /usr/local/share/cidata/
+COPY swift-6.3.1.tgz swift-docc-6.3.1.tgz swift-format-6.3.1.tgz swift-foundation-6.3.1.tgz swift-libdispatch-6.3.1.tgz swift-sourcekit-lsp-6.3.1.tgz swift-stdlib-6.3.1.tgz swift-swiftpm-6.3.1.tgz swift-testing-6.3.1.tgz swift-xctest-6.3.1.tgz /usr/local/share/cidata/
 COPY --from=ghcr.io/3405691582/openbsd-amd64:7.8 \
     /usr/local/share/openbsd/os.qcow2 /usr/local/share/vm/os.qcow2
 ENV CPU=2 MEM=4G KVM="" SCRATCH=4G TAPE=4G
