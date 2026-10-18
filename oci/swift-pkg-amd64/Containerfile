@@ -1,4 +1,4 @@
-ARG OSREV=7.8
+ARG OSREV=7.9
 FROM ghcr.io/3405691582/openbsd-amd64:${OSREV} AS openbsd-amd64
 
 FROM alpine AS cidata-img

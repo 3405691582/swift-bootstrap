@@ -4,6 +4,7 @@ cp ../../port-6.2.4.diff cidata/
 cp ../../oci/swift-bootstrap-arm64/user-data cidata/
 cp ../../oci/swift-bootstrap-arm64/meta-data cidata/
 xorriso -volid CIDATA -joliet on -rockridge on -outdev localds.img -map ./cidata/ /
+rm -rf cidata/
 qemu-img create -f qcow2 scratch.qcow2 64G
 qemu-img create -f qcow2 tape-bootstrap.qcow2 2G
 qemu-system-aarch64 -M virt -cpu neoverse-n1 -smp 8 -m 16G \

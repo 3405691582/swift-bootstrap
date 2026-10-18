@@ -1,10 +1,11 @@
+? lang/swift/patches-soversion
 Index: lang/swift/Makefile
 ===================================================================
 RCS file: lang/swift/Makefile
 diff -N lang/swift/Makefile
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/Makefile	17 Oct 2026 19:12:00 -0000
-@@ -0,0 +1,478 @@
++++ lang/swift/Makefile	9 Nov 2026 00:10:11 -0000
+@@ -0,0 +1,485 @@
 +COMMENT-main =		swift programming language
 +COMMENT-stdlib =	swift standard libraries
 +COMMENT-libdispatch =	swift dispatch library
@@ -46,13 +47,17 @@ diff -N lang/swift/Makefile
 +BUILD_DEPENDS +=	lang/swift
 +.endif
 +
++BUILD_DEPENDS +=	devel/llvm/21
 +BUILD_DEPENDS +=	devel/cmake/core
-+BUILD_DEPENDS +=	lang/python/3
++#BUILD_DEPENDS +=	lang/python/3
 +BUILD_DEPENDS +=	shells/bash
 +BUILD_DEPENDS +=	devel/ninja
 +BUILD_DEPENDS +=	sysutils/e2fsprogs
 +BUILD_DEPENDS +=	textproc/libxml
 +BUILD_DEPENDS +=	net/curl
++
++MODULES = 		lang/clang
++MODCLANG_LANGS = 	c c++
 +
 +RUN_DEPENDS-main += \
 +	lang/swift,-stdlib \
@@ -309,25 +314,28 @@ diff -N lang/swift/Makefile
 +	mv -f ${WRKDIR}/usr ${BOOTSTRAP_BASE}
 +.endif
 +
++#	      --install-llvm \
++#	      --llvm-install-components="${LLVM_COMPONENTS}" \
++#	      --swift-install-components="${SWIFT_COMPONENTS}" \
 +do-build:
 +	${SETENV} ${MAKE_ENV} \
 +	    PATH=${BOOTSTRAP_DIR}/bin:${PORTPATH} \
 +	    SWIFT_BUILD_ROOT=${WRKBUILD} \
 +	    ${WRKSRC}/swift/utils/build-script \
 +	      -j${MAKE_JOBS} \
-+	      --native-clang-tools-path=${WRKDIR}/bin \
 +	      --build-subdir=toolchain \
++	      --native-clang-tools-path=${WRKDIR}/bin \
 +	      --extra-cmake-options="\
 +		-DOPENBSD_BOOTSTRAP_RPATH=FALSE \
 +	        -DCMAKE_Swift_NUM_THREADS=${SWIFTC_JOBS} \
 +		-DSWIFT_CLANG_RESOURCE_DIR_SYMLINK_INSTALL_TARGET=${CLANG_DIR} \
 +	        -DBRIDGING_MODE=PURE" \
 +	      --install-prefix=${TRUEPREFIX} \
-+	      --llvm-install-components="${LLVM_COMPONENTS}" \
 +	      --llvm-targets-to-build=host \
 +	      --release -A \
-+	      --install-swift \
++	      --llvm-install-components="${LLVM_COMPONENTS}" \
 +	      --swift-install-components="${SWIFT_COMPONENTS}" \
++	      --install-swift \
 +	      --install-libdispatch \
 +	      --foundation --install-foundation \
 +	      --xctest --install-xctest \
@@ -488,7 +496,7 @@ Index: lang/swift/distinfo
 RCS file: lang/swift/distinfo
 diff -N lang/swift/distinfo
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/distinfo	17 Oct 2026 19:12:00 -0000
++++ lang/swift/distinfo	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,72 @@
 +SHA256 (swift/0.1/swift-bootstrap-6.2.4-aarch64.tar.gz) = ZOo5+tjr09vkpmABoOIErCei3pwjA9x/A+bwh5ENNdQ=
 +SHA256 (swift/0.1/swift-bootstrap-6.2.4-amd64.tar.gz) = c/mv+UjVkTCpPbMvHeXJDs3uxD17Aa0bfVU4HrxkG1c=
@@ -566,29 +574,12 @@ Index: lang/swift/patches/patch-llbuild_CMakeLists_txt
 ===================================================================
 RCS file: lang/swift/patches/patch-llbuild_CMakeLists_txt
 diff -N lang/swift/patches/patch-llbuild_CMakeLists_txt
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-llbuild_CMakeLists_txt	17 Oct 2026 19:12:00 -0000
-@@ -0,0 +1,14 @@
-+OpenBSD so version support.
-+
-+Index: llbuild/CMakeLists.txt
-+--- llbuild/CMakeLists.txt.orig
-++++ llbuild/CMakeLists.txt
-+@@ -216,6 +216,8 @@ if(LLBUILD_ENABLE_ASSERTIONS)
-+   add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-UNDEBUG>)
-+ endif()
-+ 
-++set(CMAKE_SHARED_LIBRARY_SUFFIX ".so.6.4")
-++
-+ ###
-+ 
-+ # Process CMakeLists files for our subdirectories.
 Index: lang/swift/patches/patch-llvm-project_clang_lib_Driver_ToolChains_Clang_cpp
 ===================================================================
 RCS file: lang/swift/patches/patch-llvm-project_clang_lib_Driver_ToolChains_Clang_cpp
 diff -N lang/swift/patches/patch-llvm-project_clang_lib_Driver_ToolChains_Clang_cpp
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-llvm-project_clang_lib_Driver_ToolChains_Clang_cpp	17 Oct 2026 19:12:00 -0000
++++ lang/swift/patches/patch-llvm-project_clang_lib_Driver_ToolChains_Clang_cpp	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,15 @@
 +We currently do this in the driver if Swift is compiled with BTCFI.
 +BTCFI handling needs updating upstream.
@@ -610,7 +601,7 @@ Index: lang/swift/patches/patch-llvm-project_third-party_benchmark_include_bench
 RCS file: lang/swift/patches/patch-llvm-project_third-party_benchmark_include_benchmark_benchmark_h
 diff -N lang/swift/patches/patch-llvm-project_third-party_benchmark_include_benchmark_benchmark_h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-llvm-project_third-party_benchmark_include_benchmark_benchmark_h	17 Oct 2026 19:12:00 -0000
++++ lang/swift/patches/patch-llvm-project_third-party_benchmark_include_benchmark_benchmark_h	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,15 @@
 +Index: llvm-project/third-party/benchmark/include/benchmark/benchmark.h
 +--- llvm-project/third-party/benchmark/include/benchmark/benchmark.h.orig
@@ -632,7 +623,7 @@ Index: lang/swift/patches/patch-sourcekit-lsp_Utilities_build-script-helper_py
 RCS file: lang/swift/patches/patch-sourcekit-lsp_Utilities_build-script-helper_py
 diff -N lang/swift/patches/patch-sourcekit-lsp_Utilities_build-script-helper_py
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-sourcekit-lsp_Utilities_build-script-helper_py	17 Oct 2026 19:12:00 -0000
++++ lang/swift/patches/patch-sourcekit-lsp_Utilities_build-script-helper_py	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,25 @@
 +OpenBSD so version scheme.
 +rpath handling: Do not upstream.
@@ -659,37 +650,16 @@ diff -N lang/swift/patches/patch-sourcekit-lsp_Utilities_build-script-helper_py
 +     for prefix in args.install_prefixes:
 +         copy_file(os.path.join(bin_path, 'sourcekit-lsp'), os.path.join(prefix, 'bin'), verbose=args.verbose)
 +         copy_file(os.path.join(bin_path, f'libSwiftSourceKitPlugin.{dynamic_library_extension}'), os.path.join(prefix, 'lib'), verbose=args.verbose)
-Index: lang/swift/patches/patch-swift-build_Sources_SWBUtil_Architecture_swift
-===================================================================
-RCS file: lang/swift/patches/patch-swift-build_Sources_SWBUtil_Architecture_swift
-diff -N lang/swift/patches/patch-swift-build_Sources_SWBUtil_Architecture_swift
 Index: lang/swift/patches/patch-swift-corelibs-foundation_CMakeLists_txt
 ===================================================================
 RCS file: lang/swift/patches/patch-swift-corelibs-foundation_CMakeLists_txt
 diff -N lang/swift/patches/patch-swift-corelibs-foundation_CMakeLists_txt
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-corelibs-foundation_CMakeLists_txt	17 Oct 2026 19:12:00 -0000
-@@ -0,0 +1,14 @@
-+OpenBSD so versioning scheme.
-+
-+Index: swift-corelibs-foundation/CMakeLists.txt
-+--- swift-corelibs-foundation/CMakeLists.txt.orig
-++++ swift-corelibs-foundation/CMakeLists.txt
-+@@ -245,6 +245,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_
-+         "-D_GNU_SOURCE")
-+ endif()
-+ 
-++set(CMAKE_SHARED_LIBRARY_SUFFIX ".so.6.4")
-++
-+ include(GNUInstallDirs)
-+ include(FoundationSwiftSupport)
-+ 
 Index: lang/swift/patches/patch-swift-corelibs-foundation_Sources_plutil_CMakeLists_txt
 ===================================================================
 RCS file: lang/swift/patches/patch-swift-corelibs-foundation_Sources_plutil_CMakeLists_txt
 diff -N lang/swift/patches/patch-swift-corelibs-foundation_Sources_plutil_CMakeLists_txt
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-corelibs-foundation_Sources_plutil_CMakeLists_txt	17 Oct 2026 19:12:00 -0000
++++ lang/swift/patches/patch-swift-corelibs-foundation_Sources_plutil_CMakeLists_txt	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,14 @@
 +Do not upstream.
 +
@@ -709,47 +679,16 @@ Index: lang/swift/patches/patch-swift-corelibs-libdispatch_CMakeLists_txt
 ===================================================================
 RCS file: lang/swift/patches/patch-swift-corelibs-libdispatch_CMakeLists_txt
 diff -N lang/swift/patches/patch-swift-corelibs-libdispatch_CMakeLists_txt
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-corelibs-libdispatch_CMakeLists_txt	17 Oct 2026 19:12:00 -0000
-@@ -0,0 +1,13 @@
-+OpenBSD so version support.
-+
-+Index: swift-corelibs-libdispatch/CMakeLists.txt
-+--- swift-corelibs-libdispatch/CMakeLists.txt.orig
-++++ swift-corelibs-libdispatch/CMakeLists.txt
-+@@ -327,6 +327,7 @@ else()
-+   set(INSTALL_OS_HEADERS_DIR "include/os" CACHE PATH "Path where the headers will be installed")
-+ endif()
-+ 
-++set(CMAKE_SHARED_LIBRARY_SUFFIX ".so.6.4")
-+ 
-+ add_subdirectory(dispatch)
-+ add_subdirectory(man)
 Index: lang/swift/patches/patch-swift-corelibs-xctest_CMakeLists_txt
 ===================================================================
 RCS file: lang/swift/patches/patch-swift-corelibs-xctest_CMakeLists_txt
 diff -N lang/swift/patches/patch-swift-corelibs-xctest_CMakeLists_txt
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-corelibs-xctest_CMakeLists_txt	17 Oct 2026 19:12:00 -0000
-@@ -0,0 +1,12 @@
-+OpenBSD so version support.
-+
-+Index: swift-corelibs-xctest/CMakeLists.txt
-+--- swift-corelibs-xctest/CMakeLists.txt.orig
-++++ swift-corelibs-xctest/CMakeLists.txt
-+@@ -174,4 +174,6 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/swift/XCTest
-+   DESTINATION ${XCTest_INSTALL_SWIFTMODULEDIR}/XCTest.swiftmodule
-+   RENAME ${XCTest_MODULE_TRIPLE}.swiftmodule)
-+ 
-++set(CMAKE_SHARED_LIBRARY_SUFFIX ".so.6.4")
-++
-+ add_subdirectory(cmake/modules)
 Index: lang/swift/patches/patch-swift-docc_build-script-helper_py
 ===================================================================
 RCS file: lang/swift/patches/patch-swift-docc_build-script-helper_py
 diff -N lang/swift/patches/patch-swift-docc_build-script-helper_py
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-docc_build-script-helper_py	17 Oct 2026 19:12:00 -0000
++++ lang/swift/patches/patch-swift-docc_build-script-helper_py	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,16 @@
 +Do not upstream.
 +
@@ -772,7 +711,7 @@ Index: lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Jobs_GenericUni
 RCS file: lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Jobs_GenericUnixToolchain+LinkerSupport_swift
 diff -N lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Jobs_GenericUnixToolchain+LinkerSupport_swift
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Jobs_GenericUnixToolchain+LinkerSupport_swift	17 Oct 2026 19:12:00 -0000
++++ lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Jobs_GenericUnixToolchain+LinkerSupport_swift	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,14 @@
 +BTCFI handling needs updating upstream.
 +
@@ -793,7 +732,7 @@ Index: lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_Gene
 RCS file: lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_GenericUnixToolchain_swift
 diff -N lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_GenericUnixToolchain_swift
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_GenericUnixToolchain_swift	17 Oct 2026 19:12:00 -0000
++++ lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_GenericUnixToolchain_swift	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,14 @@
 +Do not upstream.
 +
@@ -813,32 +752,12 @@ Index: lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_Tool
 ===================================================================
 RCS file: lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_Toolchain_swift
 diff -N lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_Toolchain_swift
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_Toolchain_swift	17 Oct 2026 19:12:00 -0000
-@@ -0,0 +1,17 @@
-+OpenBSD so versioning scheme.
-+
-+Index: swift-driver/Sources/SwiftDriver/Toolchains/Toolchain.swift
-+--- swift-driver/Sources/SwiftDriver/Toolchains/Toolchain.swift.orig
-++++ swift-driver/Sources/SwiftDriver/Toolchains/Toolchain.swift
-+@@ -296,6 +296,11 @@ extension Toolchain {
-+       if fileSystem.isFile(libraryPath) {
-+         return libraryPath
-+       }
-++#if os(OpenBSD)
-++      if fileSystem.isFile(libraryPath.appending(component: ".6.4")) {
-++        return libraryPath
-++      }
-++#endif
-+     }
-+ 
-+     return nil
 Index: lang/swift/patches/patch-swift-driver_Utilities_build-script-helper_py
 ===================================================================
 RCS file: lang/swift/patches/patch-swift-driver_Utilities_build-script-helper_py
 diff -N lang/swift/patches/patch-swift-driver_Utilities_build-script-helper_py
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-driver_Utilities_build-script-helper_py	17 Oct 2026 19:12:00 -0000
++++ lang/swift/patches/patch-swift-driver_Utilities_build-script-helper_py	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,37 @@
 +install-only: Upstreamed in swiftlang/swift-driver#2141.
 +rpath handling: Do not upstream.
@@ -877,78 +796,24 @@ diff -N lang/swift/patches/patch-swift-driver_Utilities_build-script-helper_py
 +         )
 + 
 +     subparsers = parser.add_subparsers(
-Index: lang/swift/patches/patch-swift-format_build-script-helper_py
-===================================================================
-RCS file: lang/swift/patches/patch-swift-format_build-script-helper_py
-diff -N lang/swift/patches/patch-swift-format_build-script-helper_py
 Index: lang/swift/patches/patch-swift-foundation-icu_CMakeLists_txt
 ===================================================================
 RCS file: lang/swift/patches/patch-swift-foundation-icu_CMakeLists_txt
 diff -N lang/swift/patches/patch-swift-foundation-icu_CMakeLists_txt
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-foundation-icu_CMakeLists_txt	17 Oct 2026 19:12:00 -0000
-@@ -0,0 +1,13 @@
-+OpenBSD so version support.
-+
-+Index: swift-foundation-icu/CMakeLists.txt
-+--- swift-foundation-icu/CMakeLists.txt.orig
-++++ swift-foundation-icu/CMakeLists.txt
-+@@ -104,5 +104,7 @@ if(NOT SWIFT_SYSTEM_NAME)
-+   endif()
-+ endif()
-+ 
-++set(CMAKE_SHARED_LIBRARY_SUFFIX ".so.6.4")
-++
-+ add_subdirectory(icuSources)
-+ add_subdirectory(cmake/modules)
 Index: lang/swift/patches/patch-swift-foundation_CMakeLists_txt
 ===================================================================
 RCS file: lang/swift/patches/patch-swift-foundation_CMakeLists_txt
 diff -N lang/swift/patches/patch-swift-foundation_CMakeLists_txt
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-foundation_CMakeLists_txt	17 Oct 2026 19:12:00 -0000
-@@ -0,0 +1,14 @@
-+OpenBSD so versioning scheme.
-+
-+Index: swift-foundation/CMakeLists.txt
-+--- swift-foundation/CMakeLists.txt.orig
-++++ swift-foundation/CMakeLists.txt
-+@@ -145,6 +145,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
-+     endif()
-+ endif()
-+ 
-++set(CMAKE_SHARED_LIBRARY_SUFFIX ".so.6.4")
-++
-+ include(GNUInstallDirs)
-+ include(SwiftFoundationSwiftSupport)
-+ 
 Index: lang/swift/patches/patch-swift-foundation_Sources_FoundationMacros_CMakeLists_txt
 ===================================================================
 RCS file: lang/swift/patches/patch-swift-foundation_Sources_FoundationMacros_CMakeLists_txt
 diff -N lang/swift/patches/patch-swift-foundation_Sources_FoundationMacros_CMakeLists_txt
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-foundation_Sources_FoundationMacros_CMakeLists_txt	17 Oct 2026 19:12:00 -0000
-@@ -0,0 +1,14 @@
-+OpenBSD so version support.
-+
-+Index: swift-foundation/Sources/FoundationMacros/CMakeLists.txt
-+--- swift-foundation/Sources/FoundationMacros/CMakeLists.txt.orig
-++++ swift-foundation/Sources/FoundationMacros/CMakeLists.txt
-+@@ -92,6 +92,8 @@ set_target_properties(FoundationMacros PROPERTIES
-+     INSTALL_RPATH "$ORIGIN/../../../swift/${SWIFT_SYSTEM_NAME}:$ORIGIN/.."
-+     INSTALL_REMOVE_ENVIRONMENT_RPATH ON)
-+ 
-++set(CMAKE_SHARED_LIBRARY_SUFFIX ".so.6.4")
-++
-+ if(NOT FoundationMacros_BuildLocalExecutable)
-+     install(TARGETS FoundationMacros
-+         LIBRARY DESTINATION lib/swift/host/plugins
 Index: lang/swift/patches/patch-swift-lmdb_libraries_liblmdb_mdb_c
 ===================================================================
 RCS file: lang/swift/patches/patch-swift-lmdb_libraries_liblmdb_mdb_c
 diff -N lang/swift/patches/patch-swift-lmdb_libraries_liblmdb_mdb_c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-lmdb_libraries_liblmdb_mdb_c	17 Oct 2026 19:12:00 -0000
++++ lang/swift/patches/patch-swift-lmdb_libraries_liblmdb_mdb_c	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,13 @@
 +See databases/lmdb.
 +
@@ -967,50 +832,16 @@ Index: lang/swift/patches/patch-swift-testing_CMakeLists_txt
 ===================================================================
 RCS file: lang/swift/patches/patch-swift-testing_CMakeLists_txt
 diff -N lang/swift/patches/patch-swift-testing_CMakeLists_txt
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-testing_CMakeLists_txt	17 Oct 2026 19:12:00 -0000
-@@ -0,0 +1,14 @@
-+OpenBSD so version support.
-+
-+Index: swift-testing/CMakeLists.txt
-+--- swift-testing/CMakeLists.txt.orig
-++++ swift-testing/CMakeLists.txt
-+@@ -43,6 +43,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
-+ 
-+ set(CMAKE_INSTALL_RPATH "$<IF:$<PLATFORM_ID:Darwin>,@loader_path/..,$ORIGIN>")
-+ set(CMAKE_INSTALL_REMOVE_ENVIRONMENT_RPATH YES)
-++#add_link_options("LINKER:-z,origin")
-++set(CMAKE_SHARED_LIBRARY_SUFFIX ".so.6.4")
-+ 
-+ set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
-+ set(CMAKE_CXX_STANDARD 20)
 Index: lang/swift/patches/patch-swift-testing_Sources_TestingMacros_CMakeLists_txt
 ===================================================================
 RCS file: lang/swift/patches/patch-swift-testing_Sources_TestingMacros_CMakeLists_txt
 diff -N lang/swift/patches/patch-swift-testing_Sources_TestingMacros_CMakeLists_txt
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-testing_Sources_TestingMacros_CMakeLists_txt	17 Oct 2026 19:12:00 -0000
-@@ -0,0 +1,14 @@
-+OpenBSD so version support.
-+
-+Index: swift-testing/Sources/TestingMacros/CMakeLists.txt
-+--- swift-testing/Sources/TestingMacros/CMakeLists.txt.orig
-++++ swift-testing/Sources/TestingMacros/CMakeLists.txt
-+@@ -26,6 +26,8 @@ endif()
-+ 
-+ find_package(SwiftSyntax CONFIG GLOBAL)
-+ 
-++set(CMAKE_SHARED_LIBRARY_SUFFIX ".so.6.4")
-++
-+ if(SwiftTesting_BuildMacrosAsExecutables)
-+   # When building the macro plugin as an executable, clone and build
-+   # swift-syntax.
 Index: lang/swift/patches/patch-swift_cmake_modules_AddPureSwift_cmake
 ===================================================================
 RCS file: lang/swift/patches/patch-swift_cmake_modules_AddPureSwift_cmake
 diff -N lang/swift/patches/patch-swift_cmake_modules_AddPureSwift_cmake
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift_cmake_modules_AddPureSwift_cmake	17 Oct 2026 19:12:00 -0000
++++ lang/swift/patches/patch-swift_cmake_modules_AddPureSwift_cmake	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,53 @@
 +Do not upstream.
 +
@@ -1070,7 +901,7 @@ Index: lang/swift/patches/patch-swift_cmake_modules_AddSwift_cmake
 RCS file: lang/swift/patches/patch-swift_cmake_modules_AddSwift_cmake
 diff -N lang/swift/patches/patch-swift_cmake_modules_AddSwift_cmake
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift_cmake_modules_AddSwift_cmake	17 Oct 2026 19:12:00 -0000
++++ lang/swift/patches/patch-swift_cmake_modules_AddSwift_cmake	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,42 @@
 +Do not upstream.
 +
@@ -1118,147 +949,20 @@ Index: lang/swift/patches/patch-swift_cmake_modules_Libdispatch_cmake
 ===================================================================
 RCS file: lang/swift/patches/patch-swift_cmake_modules_Libdispatch_cmake
 diff -N lang/swift/patches/patch-swift_cmake_modules_Libdispatch_cmake
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift_cmake_modules_Libdispatch_cmake	17 Oct 2026 19:12:00 -0000
-@@ -0,0 +1,62 @@
-+OpenBSD so version support.
-+
-+Index: swift/cmake/modules/Libdispatch.cmake
-+--- swift/cmake/modules/Libdispatch.cmake.orig
-++++ swift/cmake/modules/Libdispatch.cmake
-+@@ -172,27 +172,27 @@ foreach(sdk ${DISPATCH_SDKS})
-+         ${CMAKE_COMMAND} -E env --unset=DESTDIR ${CMAKE_COMMAND} --build . --target install
-+         COMMAND
-+         ${CMAKE_COMMAND} -E copy
-+-        <INSTALL_DIR>/${LIBDISPATCH_RUNTIME_DIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}dispatch${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}
-+-        ${SWIFTLIB_DIR}/${SWIFT_SDK_${sdk}_LIB_SUBDIR}/${arch}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}dispatch${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}
-++        <INSTALL_DIR>/${LIBDISPATCH_RUNTIME_DIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}dispatch${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}.6.4
-++        ${SWIFTLIB_DIR}/${SWIFT_SDK_${sdk}_LIB_SUBDIR}/${arch}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}dispatch${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}.6.4
-+         COMMAND
-+         ${CMAKE_COMMAND} -E copy
-+-        <INSTALL_DIR>/${LIBDISPATCH_RUNTIME_DIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}BlocksRuntime${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}
-+-        ${SWIFTLIB_DIR}/${SWIFT_SDK_${sdk}_LIB_SUBDIR}/${arch}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}BlocksRuntime${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}
-++        <INSTALL_DIR>/${LIBDISPATCH_RUNTIME_DIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}BlocksRuntime${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}.6.4
-++        ${SWIFTLIB_DIR}/${SWIFT_SDK_${sdk}_LIB_SUBDIR}/${arch}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}BlocksRuntime${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}.6.4
-+         COMMAND
-+         ${CMAKE_COMMAND} -E copy
-+-        <INSTALL_DIR>/${LIBDISPATCH_RUNTIME_DIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}dispatch${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}
-+-        ${SWIFTLIB_DIR}/${SWIFT_SDK_${sdk}_LIB_SUBDIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}dispatch${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}
-++        <INSTALL_DIR>/${LIBDISPATCH_RUNTIME_DIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}dispatch${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}.6.4
-++        ${SWIFTLIB_DIR}/${SWIFT_SDK_${sdk}_LIB_SUBDIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}dispatch${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}.6.4
-+         COMMAND
-+ 	${CMAKE_COMMAND} -E copy
-+-        <INSTALL_DIR>/${LIBDISPATCH_RUNTIME_DIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}BlocksRuntime${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}
-+-        ${SWIFTLIB_DIR}/${SWIFT_SDK_${sdk}_LIB_SUBDIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}BlocksRuntime${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}
-++        <INSTALL_DIR>/${LIBDISPATCH_RUNTIME_DIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}BlocksRuntime${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}.6.4
-++        ${SWIFTLIB_DIR}/${SWIFT_SDK_${sdk}_LIB_SUBDIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}BlocksRuntime${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}.6.4
-+         STEP_TARGETS
-+         install
-+         BUILD_BYPRODUCTS
-+-        <INSTALL_DIR>/${LIBDISPATCH_RUNTIME_DIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}dispatch${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}
-++        <INSTALL_DIR>/${LIBDISPATCH_RUNTIME_DIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}dispatch${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}.6.4
-+         <INSTALL_DIR>/lib/${SWIFT_SDK_${sdk}_IMPORT_LIBRARY_PREFIX}dispatch${SWIFT_SDK_${sdk}_IMPORT_LIBRARY_SUFFIX}
-+-        <INSTALL_DIR>/${LIBDISPATCH_RUNTIME_DIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}BlocksRuntime${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}
-+-        <INSTALL_DIR>/lib/${SWIFT_SDK_${sdk}_IMPORT_LIBRARY_PREFIX}BlocksRuntime${SWIFT_SDK_${sdk}_IMPORT_LIBRARY_SUFFIX}
-++        <INSTALL_DIR>/${LIBDISPATCH_RUNTIME_DIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}BlocksRuntime${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}.6.4
-++        <INSTALL_DIR>/lib/${SWIFT_SDK_${sdk}_IMPORT_LIBRARY_PREFIX}BlocksRuntime${SWIFT_SDK_${sdk}_IMPORT_LIBRARY_SUFFIX}.6.4
-+         BUILD_ALWAYS
-+         1)
-+ 
-+@@ -212,7 +212,7 @@ foreach(sdk ${DISPATCH_SDKS})
-+       set_target_properties("${DISPATCH_VARIANT_NAME}"
-+         PROPERTIES
-+         IMPORTED_LOCATION
-+-        ${install_dir}/${LIBDISPATCH_RUNTIME_DIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}dispatch${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}
-++        ${install_dir}/${LIBDISPATCH_RUNTIME_DIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}dispatch${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}.6.4
-+         IMPORTED_IMPLIB
-+         ${install_dir}/lib/${SWIFT_SDK_${sdk}_IMPORT_LIBRARY_PREFIX}dispatch${SWIFT_SDK_${sdk}_IMPORT_LIBRARY_SUFFIX}
-+         INTERFACE_INCLUDE_DIRECTORIES
-+@@ -225,7 +225,7 @@ foreach(sdk ${DISPATCH_SDKS})
-+       set_target_properties("${BLOCKS_RUNTIME_VARIANT_NAME}"
-+         PROPERTIES
-+         IMPORTED_LOCATION
-+-        ${install_dir}/${LIBDISPATCH_RUNTIME_DIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}BlocksRuntime${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}
-++        ${install_dir}/${LIBDISPATCH_RUNTIME_DIR}/${SWIFT_SDK_${sdk}_SHARED_LIBRARY_PREFIX}BlocksRuntime${SWIFT_SDK_${sdk}_SHARED_LIBRARY_SUFFIX}.6.4
-+         IMPORTED_IMPLIB
-+         ${install_dir}/lib/${SWIFT_SDK_${sdk}_IMPORT_LIBRARY_PREFIX}BlocksRuntime${SWIFT_SDK_${sdk}_IMPORT_LIBRARY_SUFFIX}
-+         INTERFACE_INCLUDE_DIRECTORIES
 Index: lang/swift/patches/patch-swift_cmake_modules_SwiftConfigureSDK_cmake
 ===================================================================
 RCS file: lang/swift/patches/patch-swift_cmake_modules_SwiftConfigureSDK_cmake
 diff -N lang/swift/patches/patch-swift_cmake_modules_SwiftConfigureSDK_cmake
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift_cmake_modules_SwiftConfigureSDK_cmake	17 Oct 2026 19:12:00 -0000
-@@ -0,0 +1,13 @@
-+OpenBSD so versioning scheme.
-+
-+Index: swift/cmake/modules/SwiftConfigureSDK.cmake
-+--- swift/cmake/modules/SwiftConfigureSDK.cmake.orig
-++++ swift/cmake/modules/SwiftConfigureSDK.cmake
-+@@ -449,6 +449,7 @@ macro(configure_sdk_unix name architectures)
-+ 
-+         set(SWIFT_SDK_OPENBSD_ARCH_${arch}_TRIPLE "${arch}-unknown-openbsd${openbsd_system_version}")
-+         set(SWIFT_SDK_OPENBSD_ARCH_${arch}_MODULE "${arch}-unknown-openbsd")
-++        set(CMAKE_SHARED_LIBRARY_SUFFIX ".so.6.4")
-+ 
-+         add_link_options("LINKER:-z,origin")
-+ 
 Index: lang/swift/patches/patch-swift_lib_AST_PluginLoader_cpp
 ===================================================================
 RCS file: lang/swift/patches/patch-swift_lib_AST_PluginLoader_cpp
 diff -N lang/swift/patches/patch-swift_lib_AST_PluginLoader_cpp
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift_lib_AST_PluginLoader_cpp	17 Oct 2026 19:12:00 -0000
-@@ -0,0 +1,39 @@
-+OpenBSD so versioning scheme.
-+
-+Index: swift/lib/AST/PluginLoader.cpp
-+--- swift/lib/AST/PluginLoader.cpp.orig
-++++ swift/lib/AST/PluginLoader.cpp
-+@@ -61,6 +61,12 @@ static StringRef pluginModuleNameStringFromPath(String
-+     // that name, thus harmless.
-+     return filename.drop_front(libPrefix.size()).drop_back(libSuffix.size());
-+   }
-++#if defined(__OpenBSD__)
-++  if (filename.starts_with(libPrefix)) {
-++    std::pair<StringRef, StringRef> p = filename.split('.');
-++    return p.first.drop_front(libPrefix.size());
-++  }
-++#endif
-+   return "";
-+ }
-+ 
-+@@ -243,9 +249,20 @@ llvm::Expected<CompilerPlugin *> PluginLoader::getInPr
-+         "library plugins require -in-process-plugin-server-path");
-+   }
-+ 
-++#if defined(__OpenBSD__)
-++  auto inProcPluginServerPath2 = inProcPluginServerPath;
-++  inProcPluginServerPath2 += ".6.4";
-++#endif
-++
-+   auto fs = getPluginLoadingFS(Ctx);
-+   SmallString<128> resolvedPath;
-+   if (auto err = fs->getRealPath(inProcPluginServerPath, resolvedPath)) {
-++#if defined(__OpenBSD__)
-++    if (auto err2 = fs->getRealPath(inProcPluginServerPath2, resolvedPath)) {
-++      return llvm::createStringError(err2, err2.message());
-++    }
-++    return getRegistry()->getInProcessPlugins(resolvedPath);
-++#endif
-+     return llvm::createStringError(err, err.message());
-+   }
-+ 
-Index: lang/swift/patches/patch-swift_lib_Basic_Platform_cpp
-===================================================================
-RCS file: lang/swift/patches/patch-swift_lib_Basic_Platform_cpp
-diff -N lang/swift/patches/patch-swift_lib_Basic_Platform_cpp
 Index: lang/swift/patches/patch-swift_lib_Driver_Driver_cpp
 ===================================================================
 RCS file: lang/swift/patches/patch-swift_lib_Driver_Driver_cpp
 diff -N lang/swift/patches/patch-swift_lib_Driver_Driver_cpp
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift_lib_Driver_Driver_cpp	17 Oct 2026 19:12:00 -0000
++++ lang/swift/patches/patch-swift_lib_Driver_Driver_cpp	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,18 @@
 +May be unnecessary -- only for bootstrapping, which is broken.
 +
@@ -1283,7 +987,7 @@ Index: lang/swift/patches/patch-swift_utils_build-presets_ini
 RCS file: lang/swift/patches/patch-swift_utils_build-presets_ini
 diff -N lang/swift/patches/patch-swift_utils_build-presets_ini
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift_utils_build-presets_ini	17 Oct 2026 19:12:00 -0000
++++ lang/swift/patches/patch-swift_utils_build-presets_ini	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,41 @@
 +Index: swift/utils/build-presets.ini
 +--- swift/utils/build-presets.ini.orig
@@ -1326,16 +1030,12 @@ diff -N lang/swift/patches/patch-swift_utils_build-presets_ini
 + [preset: wasm_stdlib,macos]
 + 
 + mixin-preset=mixin_buildbot_install_components_with_clang
-Index: lang/swift/patches/patch-swift_utils_build-script-impl
-===================================================================
-RCS file: lang/swift/patches/patch-swift_utils_build-script-impl
-diff -N lang/swift/patches/patch-swift_utils_build-script-impl
 Index: lang/swift/patches/patch-swiftpm_Package_swift
 ===================================================================
 RCS file: lang/swift/patches/patch-swiftpm_Package_swift
 diff -N lang/swift/patches/patch-swiftpm_Package_swift
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swiftpm_Package_swift	17 Oct 2026 19:12:00 -0000
++++ lang/swift/patches/patch-swiftpm_Package_swift	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,14 @@
 +Do not upstream.
 +
@@ -1356,7 +1056,7 @@ Index: lang/swift/patches/patch-swiftpm_Utilities_bootstrap
 RCS file: lang/swift/patches/patch-swiftpm_Utilities_bootstrap
 diff -N lang/swift/patches/patch-swiftpm_Utilities_bootstrap
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swiftpm_Utilities_bootstrap	17 Oct 2026 19:12:00 -0000
++++ lang/swift/patches/patch-swiftpm_Utilities_bootstrap	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,37 @@
 +WIP: upstream install-only fixes.
 +
@@ -1400,7 +1100,7 @@ Index: lang/swift/pkg/DESCR-docc
 RCS file: lang/swift/pkg/DESCR-docc
 diff -N lang/swift/pkg/DESCR-docc
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-docc	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/DESCR-docc	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,2 @@
 +Swift-DocC is a documentation compiler for Swift frameworks and packages
 +aimed at making it easy to write and publish great developer documentation.
@@ -1409,7 +1109,7 @@ Index: lang/swift/pkg/DESCR-format
 RCS file: lang/swift/pkg/DESCR-format
 diff -N lang/swift/pkg/DESCR-format
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-format	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/DESCR-format	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,2 @@
 +swift-format provides the formatting technology for SourceKit-LSP and the
 +building blocks for doing code formatting transformations.
@@ -1418,7 +1118,7 @@ Index: lang/swift/pkg/DESCR-foundation
 RCS file: lang/swift/pkg/DESCR-foundation
 diff -N lang/swift/pkg/DESCR-foundation
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-foundation	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/DESCR-foundation	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,4 @@
 +Foundation provides a base layer of functionality useful in many
 +applications, including fundamental types for numbers, data,
@@ -1429,7 +1129,7 @@ Index: lang/swift/pkg/DESCR-libdispatch
 RCS file: lang/swift/pkg/DESCR-libdispatch
 diff -N lang/swift/pkg/DESCR-libdispatch
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-libdispatch	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/DESCR-libdispatch	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,2 @@
 +Grand Central Dispatch (GCD or libdispatch) provides comprehensive
 +support for concurrent code execution on multicore hardware.
@@ -1438,7 +1138,7 @@ Index: lang/swift/pkg/DESCR-lsp
 RCS file: lang/swift/pkg/DESCR-lsp
 diff -N lang/swift/pkg/DESCR-lsp
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-lsp	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/DESCR-lsp	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,8 @@
 +SourceKit-LSP is an implementation of the Language Server Protocol (LSP)
 +for Swift and C-based languages. It provides intelligent editor
@@ -1453,7 +1153,7 @@ Index: lang/swift/pkg/DESCR-main
 RCS file: lang/swift/pkg/DESCR-main
 diff -N lang/swift/pkg/DESCR-main
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-main	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/DESCR-main	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,12 @@
 +Swift is a high-performance system programming language. It has a clean
 +and modern syntax, offers seamless access to existing C and Objective-C
@@ -1472,7 +1172,7 @@ Index: lang/swift/pkg/DESCR-stdlib
 RCS file: lang/swift/pkg/DESCR-stdlib
 diff -N lang/swift/pkg/DESCR-stdlib
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-stdlib	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/DESCR-stdlib	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,2 @@
 +The Swift standard library defines a base layer of functionality for
 +writing Swift programs.
@@ -1481,7 +1181,7 @@ Index: lang/swift/pkg/DESCR-swiftpm
 RCS file: lang/swift/pkg/DESCR-swiftpm
 diff -N lang/swift/pkg/DESCR-swiftpm
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-swiftpm	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/DESCR-swiftpm	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,5 @@
 +The Swift Package Manager is a tool for managing distribution of source
 +code, aimed at making it easy to share your code and reuse others' code.
@@ -1493,7 +1193,7 @@ Index: lang/swift/pkg/DESCR-testing
 RCS file: lang/swift/pkg/DESCR-testing
 diff -N lang/swift/pkg/DESCR-testing
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-testing	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/DESCR-testing	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,2 @@
 +Swift Testing is a package with expressive and intuitive APIs that make
 +testing your Swift code a breeze.
@@ -1502,7 +1202,7 @@ Index: lang/swift/pkg/DESCR-xctest
 RCS file: lang/swift/pkg/DESCR-xctest
 diff -N lang/swift/pkg/DESCR-xctest
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-xctest	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/DESCR-xctest	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,2 @@
 +The XCTest library is designed to provide a common framework for writing
 +unit tests in Swift, for Swift packages and applications.
@@ -1511,7 +1211,7 @@ Index: lang/swift/pkg/PLIST-docc
 RCS file: lang/swift/pkg/PLIST-docc
 diff -N lang/swift/pkg/PLIST-docc
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-docc	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/PLIST-docc	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,57 @@
 +@bin bin/docc
 +share/docc/
@@ -1575,7 +1275,7 @@ Index: lang/swift/pkg/PLIST-format
 RCS file: lang/swift/pkg/PLIST-format
 diff -N lang/swift/pkg/PLIST-format
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-format	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/PLIST-format	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1 @@
 +@bin bin/swift-format
 Index: lang/swift/pkg/PLIST-foundation
@@ -1583,7 +1283,7 @@ Index: lang/swift/pkg/PLIST-foundation
 RCS file: lang/swift/pkg/PLIST-foundation
 diff -N lang/swift/pkg/PLIST-foundation
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-foundation	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/PLIST-foundation	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,671 @@
 +@bin bin/plutil
 +lib/swift/CoreFoundation/
@@ -2261,7 +1961,7 @@ Index: lang/swift/pkg/PLIST-libdispatch
 RCS file: lang/swift/pkg/PLIST-libdispatch
 diff -N lang/swift/pkg/PLIST-libdispatch
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-libdispatch	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/PLIST-libdispatch	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,56 @@
 +lib/swift/Block/
 +lib/swift/Block/Block.h
@@ -2324,7 +2024,7 @@ Index: lang/swift/pkg/PLIST-lsp
 RCS file: lang/swift/pkg/PLIST-lsp
 diff -N lang/swift/pkg/PLIST-lsp
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-lsp	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/PLIST-lsp	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,5 @@
 +@bin bin/sourcekit-lsp
 +@lib lib/libSwiftSourceKitClientPlugin.so.${LIBSwiftSourceKitClientPlugin_VERSION}
@@ -2336,7 +2036,7 @@ Index: lang/swift/pkg/PLIST-main
 RCS file: lang/swift/pkg/PLIST-main
 diff -N lang/swift/pkg/PLIST-main
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-main	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/PLIST-main	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,377 @@
 +bin/sdk-module-lists/
 +bin/sdk-module-lists/create-module-lists.sh
@@ -2720,7 +2420,7 @@ Index: lang/swift/pkg/PLIST-stdlib
 RCS file: lang/swift/pkg/PLIST-stdlib
 diff -N lang/swift/pkg/PLIST-stdlib
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-stdlib	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/PLIST-stdlib	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,266 @@
 +@lib lib/libIndexStore.so.${LIBIndexStore_VERSION}
 +@lib lib/libswiftDemangle.so.${LIBswiftDemangle_VERSION}
@@ -2993,7 +2693,7 @@ Index: lang/swift/pkg/PLIST-swiftpm
 RCS file: lang/swift/pkg/PLIST-swiftpm
 diff -N lang/swift/pkg/PLIST-swiftpm
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-swiftpm	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/PLIST-swiftpm	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,196 @@
 +bin/swift-build
 +bin/swift-experimental-sdk
@@ -3196,7 +2896,7 @@ Index: lang/swift/pkg/PLIST-testing
 RCS file: lang/swift/pkg/PLIST-testing
 diff -N lang/swift/pkg/PLIST-testing
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-testing	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/PLIST-testing	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,25 @@
 +@lib lib/swift/host/plugins/libTestingMacros.so.${LIBTestingMacros_VERSION}
 +lib/swift/openbsd/Testing.swiftcrossimport/
@@ -3228,7 +2928,7 @@ Index: lang/swift/pkg/PLIST-xctest
 RCS file: lang/swift/pkg/PLIST-xctest
 diff -N lang/swift/pkg/PLIST-xctest
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-xctest	17 Oct 2026 19:12:00 -0000
++++ lang/swift/pkg/PLIST-xctest	9 Nov 2026 00:10:11 -0000
 @@ -0,0 +1,4 @@
 +lib/swift/openbsd/XCTest.swiftmodule/
 +lib/swift/openbsd/XCTest.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
