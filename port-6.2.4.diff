@@ -1,0 +1,3321 @@
+Index: lang/swift/Makefile
+===================================================================
+RCS file: lang/swift/Makefile
+diff -N lang/swift/Makefile
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/Makefile	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,382 @@
++COMMENT-main =		swift programming language
++COMMENT-stdlib =	swift standard libraries
++COMMENT-libdispatch =	swift dispatch library
++COMMENT-foundation =	swift foundation library
++COMMENT-swiftpm =	swift package manager
++COMMENT-xctest =	swift xctest library
++COMMENT-testing =	swift testing library
++COMMENT-format = 	swift formatting library
++COMMENT-lsp = 		swift language server
++COMMENT-docc = 		swift documentation compiler
++V =			6.2.4
++PKGNAME-main = 		swift-${V}
++PKGNAME-stdlib = 	swift-stdlib-${V}
++PKGNAME-libdispatch = 	swift-libdispatch-${V}
++PKGNAME-foundation = 	swift-foundation-${V}
++PKGNAME-swiftpm = 	swift-swiftpm-${V}
++PKGNAME-xctest = 	swift-xctest-${V}
++PKGNAME-testing = 	swift-testing-${V}
++PKGNAME-format = 	swift-format-${V}
++PKGNAME-lsp = 		swift-sourcekit-lsp-${V}
++PKGNAME-docc = 		swift-docc-${V}
++CATEGORIES =		lang
++HOMEPAGE =		https://swift.org
++
++# Apache 2.0
++PERMIT_PACKAGE =	Yes
++
++MULTI_PACKAGES =	-main -stdlib -libdispatch -foundation -swiftpm \
++			-xctest -testing -format -lsp -docc
++
++DIST_SUBDIR =		swift
++SEPARATE_BUILD =	Yes
++ONLY_FOR_ARCHS = 	amd64 aarch64
++FLAVOR ?=
++PSEUDO_FLAVORS =	native_bootstrap
++
++.if ${FLAVOR} == native_bootstrap
++BUILD_DEPENDS +=	lang/swift
++.endif
++
++BUILD_DEPENDS +=	devel/cmake/core
++BUILD_DEPENDS +=	lang/python/3
++BUILD_DEPENDS +=	shells/bash
++BUILD_DEPENDS +=	devel/ninja
++BUILD_DEPENDS +=	sysutils/e2fsprogs
++BUILD_DEPENDS +=	textproc/libxml
++BUILD_DEPENDS +=	net/curl
++
++WANTLIB-main += ${COMPILER_LIBCXX} c curses execinfo m z sqlite3 uuid zstd
++WANTLIB-stdlib += ${COMPILER_LIBCXX} c execinfo m z uuid zstd
++WANTLIB-libdispatch += ${COMPILER_LIBCXX} m
++WANTLIB-foundation += ${COMPILER_LIBCXX} c m curl xml2
++WANTLIB-xctest += ${COMPILER_LIBCXX} c execinfo m z zstd
++WANTLIB-testing += ${COMPILER_LIBCXX} c execinfo m
++WANTLIB-swiftpm += ${COMPILER_LIBCXX} c curses execinfo m sqlite3
++WANTLIB-docc += ${COMPILER_LIBCXX} c m
++ 
++RUN_DEPENDS-main += \
++	lang/swift,-stdlib \
++	lang/swift,-libdispatch \
++	lang/swift,-foundation \
++	archivers/zstd \
++	databases/sqlite3 \
++	sysutils/e2fsprogs
++
++LIB_DEPENDS-stdlib += \
++	archivers/zstd \
++	sysutils/e2fsprogs
++
++LIB_DEPENDS-dispatch +=	\
++	lang/swift,-stdlib
++
++LIB_DEPENDS-foundation += \
++	net/curl \
++	textproc/libxml
++
++LIB_DEPENDS-xctest += \
++	databases/sqlite3 \
++	archivers/zstd
++
++RUN_DEPENDS-swiftpm += \
++	lang/swift,-main \
++	lang/swift,-stdlib \
++	lang/swift,-libdispatch \
++	lang/swift,-foundation \
++	lang/swift,-xctest \
++	databases/sqlite3 \
++	textproc/libxml
++
++RUN_DEPENDS-format += \
++	lang/swift,-libdispatch \
++	lang/swift,-foundation \
++	lang/swift,-stdlib
++
++RUN_DEPENDS-lsp += \
++	lang/swift,-libdispatch \
++	lang/swift,-foundation \
++	lang/swift,-stdlib
++
++RUN_DEPENDS-docc += \
++	lang/swift,-libdispatch \
++	lang/swift,-foundation \
++	lang/swift,-stdlib
++
++WRKDIST = 		${WRKDIR}/dist
++PORTHOME = 		${WRKDIR}
++DPB_PROPERTIES =        parallel
++
++LLVM_SPELLING_ARCH =	${MACHINE_ARCH}
++.if "${MACHINE_ARCH}" == "amd64"
++LLVM_SPELLING_ARCH =	x86_64
++.endif
++SWIFT_TRIPLE =		${LLVM_SPELLING_ARCH}-unknown-openbsd
++SUBST_VARS +=		LLVM_SPELLING_ARCH SWIFT_TRIPLE
++
++DISTNAME =		swift-${V}
++TAGNAME = 		swift-${V}-RELEASE
++DISPATCH_TAGNAME = 	swift-DEVELOPMENT-SNAPSHOT-2026-02-19-a
++ARGPARSER_TAGNAME = 	1.4.0
++COLLECTIONS_TAGNAME = 	1.3.0
++CRYPTO_TAGNAME = 	3.15.1
++CERTIFICATES_TAGNAME = 	1.10.0
++ASN1_TAGNAME = 		1.3.2
++SYSTEM_TAGNAME = 	1.5.0
++SQLITE_TAGNAME = 	1.0.1
++NIO_TAGNAME = 		2.91.0
++DOCC_TAGNAME =		swift-DEVELOPMENT-SNAPSHOT-2025-12-11-a
++ATOMICS_TAGNAME = 	1.2.0
++TOOLS_TAGNAME = 	0.0.9
++CMAKE_TAGNAME = 	3.30.2
++DIST_TUPLE += \
++	github swiftlang swift ${TAGNAME} swift \
++	github swiftlang swift-cmark ${TAGNAME} cmark \
++	github swiftlang swift-llbuild ${TAGNAME} llbuild \
++	github swiftlang swift-package-manager ${TAGNAME} swiftpm \
++	github swiftlang llvm-project ${TAGNAME} llvm-project \
++	github swiftlang swift-build ${TAGNAME} swift-build \
++	github swiftlang swift-driver ${TAGNAME} swift-driver \
++	github swiftlang swift-syntax ${TAGNAME} swift-syntax \
++	github swiftlang swift-corelibs-xctest ${TAGNAME} \
++		swift-corelibs-xctest \
++	github swiftlang swift-foundation-icu ${TAGNAME} swift-foundation-icu \
++	github swiftlang swift-foundation ${TAGNAME} swift-foundation \
++	github swiftlang swift-testing ${TAGNAME} swift-testing \
++	github swiftlang swift-corelibs-foundation ${TAGNAME} \
++		swift-corelibs-foundation \
++	github swiftlang swift-tools-support-core ${TAGNAME} \
++		swift-tools-support-core \
++	github swiftlang swift-experimental-string-processing ${TAGNAME} \
++		swift-experimental-string-processing \
++	github swiftlang swift-corelibs-libdispatch ${DISPATCH_TAGNAME} \
++		swift-corelibs-libdispatch \
++	github swiftlang swift-toolchain-sqlite ${SQLITE_TAGNAME} \
++		swift-toolchain-sqlite \
++	github apple swift-asn1 ${ASN1_TAGNAME} swift-asn1 \
++	github apple swift-crypto ${CRYPTO_TAGNAME} swift-crypto \
++	github apple swift-system ${SYSTEM_TAGNAME} swift-system \
++	github apple swift-certificates ${CERTIFICATES_TAGNAME} \
++		swift-certificates \
++	github apple swift-argument-parser ${ARGPARSER_TAGNAME} \
++		swift-argument-parser \
++	github apple swift-collections ${COLLECTIONS_TAGNAME} \
++		swift-collections \
++	github swiftlang swift-format ${TAGNAME} swift-format \
++	github swiftlang swift-docc-render-artifact ${TAGNAME} \
++		swift-docc-render-artifact \
++	github swiftlang swift-docc ${TAGNAME} swift-docc \
++	github swiftlang swift-tools-protocols ${TOOLS_TAGNAME} \
++		swift-tools-protocols \
++	github swiftlang sourcekit-lsp ${TAGNAME} sourcekit-lsp  \
++	github swiftlang indexstore-db ${TAGNAME} indexstore-db \
++	github apple swift-nio ${NIO_TAGNAME} swift-nio \
++	github apple swift-markdown ${TAGNAME} swift-markdown \
++	github apple swift-lmdb ${TAGNAME} swift-lmdb \
++	github apple swift-docc-symbolkit ${TAGNAME} swift-docc-symbolkit \
++	github apple swift-atomics ${ATOMICS_TAGNAME} swift-atomics
++
++BOOTSTRAP_V =		${V}
++BOOTSTRAP_REL =		0.1
++SITES.bootstrap = \
++	https://github.com/3405691582/swift-bootstrap/releases/download/
++.for arch in ${ONLY_FOR_ARCHS}
++SUPDISTFILES.bootstrap += \
++	${BOOTSTRAP_REL}/swift-bootstrap-${BOOTSTRAP_V}-${arch}.tar.gz
++.endfor
++.if ${FLAVOR} != native_bootstrap
++DISTFILES.bootstrap = \
++	${BOOTSTRAP_REL}/swift-bootstrap-${BOOTSTRAP_V}-${MACHINE_ARCH}.tar.gz
++.endif
++
++CMAKE_BIN = 		${WRKDIR}/bin/cmake
++NINJA_BIN = 		${WRKDIR}/bin/ninja
++BOOTSTRAP_BASE =	${WRKDIR}/bootstrap
++BOOTSTRAP_DIR =		${BOOTSTRAP_BASE}/${TRUEPREFIX}
++SWIFT_SUFFIX =		openbsd-${LLVM_SPELLING_ARCH}
++BOOTSTRAP_COMPONENTS = \
++	autolink-driver;compiler;stdlib;sdk-overlay;license
++COMPONENTS = \
++	autolink-driver;compiler;stdlib;sdk-overlay;toolchain-tools;license
++SWIFT_COMPONENTS = \
++	${COMPONENTS};clang-resource-dir-symlink;libexec;swift-remote-mirror;static-mirror-lib
++CLANG_DIR =		/usr/lib/clang/19
++MULTIROOT_DATA_FILE = \
++	swift/utils/build_swift/resources/SwiftPM-Unified-Build.xcworkspace
++# If incrementing this, then you may need to increase kern.maxfiles.
++SWIFTC_JOBS =		1
++
++post-extract:
++	ln -fs `which cmake` ${CMAKE_BIN}
++	ln -fs `which ninja` ${NINJA_BIN}
++.if ${FLAVOR} != native_bootstrap
++	mkdir -p ${BOOTSTRAP_BASE}
++	mv -f ${WRKDIR}/usr ${BOOTSTRAP_BASE}
++.endif
++
++# We need to do this since patch(1) won't handle the space in the path.
++# This won't be necessary in the 6.3 release and should be removed then.
++post-patch:
++	sed -i -e '/os(FreeBSD)$$/s/$$/ || os(OpenBSD)/' \
++	    ${WRKDIST}/swift-docc/Sources/SwiftDocC/Infrastructure/External\ Data/OutOfProcessReferenceResolver.swift
++
++do-build:
++	${SETENV} ${MAKE_ENV} \
++	    PATH=${BOOTSTRAP_DIR}/bin:${PORTPATH} \
++	    SWIFT_BUILD_ROOT=${WRKBUILD} \
++	    ${WRKSRC}/swift/utils/build-script \
++	      -j${MAKE_JOBS} \
++	      --native-clang-tools-path=${WRKDIR}/bin \
++	      --build-subdir=toolchain \
++	      --extra-cmake-options="\
++	        -DCMAKE_Swift_NUM_THREADS=${SWIFTC_JOBS} \
++		-DSWIFT_CLANG_RESOURCE_DIR_SYMLINK_INSTALL_TARGET=${CLANG_DIR} \
++	        -DBRIDGING_MODE=PURE" \
++	      --install-prefix=${TRUEPREFIX} \
++	      --llvm-install-components=IndexStore \
++	      --llvm-targets-to-build=host \
++	      --release -A \
++	      --install-swift \
++	      --swift-install-components="${SWIFT_COMPONENTS}" \
++	      --install-libdispatch \
++	      --foundation --install-foundation \
++	      --xctest --install-xctest \
++	      --swift-testing --install-swift-testing \
++	      --swift-testing-macros --install-swift-testing-macros \
++	      --llbuild \
++	      --swiftpm --install-swiftpm \
++	      --swift-driver --install-swift-driver \
++	      --swiftformat --install-swiftformat \
++	      --sourcekit-lsp --install-sourcekit-lsp \
++	      --swiftdocc --install-swiftdocc
++
++do-install:
++	${SETENV} DESTDIR=${DESTDIR} ${CMAKE_BIN} --build \
++	    ${WRKBUILD}/toolchain/swift-${SWIFT_SUFFIX} -- \
++	    install-swift-components
++	${SETENV} DESTDIR=${DESTDIR} ${CMAKE_BIN} --build \
++	    ${WRKBUILD}/toolchain/libdispatch-${SWIFT_SUFFIX} -- \
++	    install
++	${SETENV} DESTDIR=${DESTDIR} ${CMAKE_BIN} --build \
++	    ${WRKBUILD}/toolchain/libdispatch_static-${SWIFT_SUFFIX} -- \
++	    install
++	${SETENV} DESTDIR=${DESTDIR} ${CMAKE_BIN} --build \
++	    ${WRKBUILD}/toolchain/foundation_macros-${SWIFT_SUFFIX} -- \
++	    install
++	${SETENV} DESTDIR=${DESTDIR} ${CMAKE_BIN} --build \
++	    ${WRKBUILD}/toolchain/foundation-${SWIFT_SUFFIX} -- \
++	    install
++	${SETENV} DESTDIR=${DESTDIR} ${CMAKE_BIN} --build \
++	    ${WRKBUILD}/toolchain/foundation_static-${SWIFT_SUFFIX} -- \
++	    install
++	cp ${WRKBUILD}/toolchain/llvm-${SWIFT_SUFFIX}/lib/libIndexStore.so \
++	    ${DESTDIR}/${TRUEPREFIX}/lib
++	${SETENV} DESTDIR=${DESTDIR} ${CMAKE_BIN} --build \
++	    ${WRKBUILD}/toolchain/xctest-${SWIFT_SUFFIX} -- \
++	    install
++	${SETENV} DESTDIR=${DESTDIR} ${CMAKE_BIN} --build \
++	    ${WRKBUILD}/toolchain/llbuild-${SWIFT_SUFFIX} -- \
++	    install-swift-build-tool
++	${SETENV} DESTDIR=${DESTDIR}/${TRUEPREFIX} ${CMAKE_BIN} --build \
++	    ${WRKBUILD}/toolchain/swifttestingmacros-${SWIFT_SUFFIX} -- \
++	    install
++	${SETENV} DESTDIR=${DESTDIR}/${TRUEPREFIX} ${CMAKE_BIN} --build \
++	    ${WRKBUILD}/toolchain/swifttesting-${SWIFT_SUFFIX} -- \
++	    install
++	${WRKDIST}/swiftpm/Utilities/bootstrap install \
++	    --install-only --release \
++	    --swiftc-path ${DESTDIR}/${TRUEPREFIX}/bin/swiftc \
++	    --clang-path ${WRKDIR}/bin/clang \
++	    --cmake-path ${CMAKE_BIN} \
++	    --ninja-path ${NINJA_BIN} \
++	    --build-dir \
++		${WRKBUILD}/toolchain/swiftpm-${SWIFT_SUFFIX} \
++	    --llbuild-build-dir \
++		${WRKBUILD}/toolchain/llbuild-${SWIFT_SUFFIX} \
++	    --dispatch-build-dir \
++		${WRKBUILD}/toolchain/libdispatch-${SWIFT_SUFFIX} \
++	    --prefix ${DESTDIR}/${TRUEPREFIX} \
++	    --verbose
++	${WRKSRC}/swift-driver/Utilities/build-script-helper.py install \
++	    --package-path ${WRKSRC}/swift-driver \
++	    --build-path \
++		${WRKBUILD}/toolchain/swiftdriver-${SWIFT_SUFFIX} \
++	    --configuration release \
++	    --toolchain ${DESTDIR}/${TRUEPREFIX} \
++	    --ninja-bin ${NINJA_BIN} \
++	    --cmake-bin ${CMAKE_BIN} \
++	    --dispatch-build-dir \
++		${WRKBUILD}/toolchain/libdispatch-${SWIFT_SUFFIX}
++	${WRKSRC}/sourcekit-lsp/Utilities/build-script-helper.py install \
++	    --install-only \
++	    --package-path ${WRKSRC}/sourcekit-lsp \
++	    --build-path \
++		${WRKBUILD}/toolchain/unified-swiftpm-build-${SWIFT_SUFFIX} \
++	    --configuration release \
++	    --toolchain ${DESTDIR}/${TRUEPREFIX} \
++	    --ninja-bin ${NINJA_BIN} \
++	    --multiroot-data-file ${WRKSRC}/${MULTIROOT_DATA_FILE} \
++	    --prefix ${DESTDIR}/${TRUEPREFIX}
++	${WRKSRC}/swift-format/build-script-helper.py install \
++	    --install-only \
++	    --toolchain ${DESTDIR}/${TRUEPREFIX} \
++	    --configuration release \
++	    --build-path ${WRKBUILD}/toolchain/unified-swiftpm-build-${SWIFT_SUFFIX} \
++	    --multiroot-data-file ${WRKSRC}/${MULTIROOT_DATA_FILE} \
++	    --prefix ${DESTDIR}/${TRUEPREFIX}
++	${WRKSRC}/swift-docc/build-script-helper.py install \
++	    --install-only \
++	    --toolchain ${DESTDIR}/${TRUEPREFIX} \
++	    --configuration release \
++	    --build-dir ${WRKBUILD}/toolchain/unified-swiftpm-build-${SWIFT_SUFFIX} \
++	    --multiroot-data-file ${WRKSRC}/${MULTIROOT_DATA_FILE} \
++	    --install-dir ${DESTDIR}/${TRUEPREFIX}/bin
++	mkdir -p ${DESTDIR}/${TRUEPREFIX}/share/docc/render
++	rsync -a ${WRKSRC}/swift-docc-render-artifact/dist/ \
++	    ${DESTDIR}/${TRUEPREFIX}/share/docc/render
++
++.PHONY: bootstrap
++bootstrap: patch
++	rm -rf ${BOOTSTRAP_DIR}
++	env SWIFT_BUILD_ROOT=${WRKBUILD} \
++	  ${WRKSRC}/swift/utils/build-script \
++	    -j${MAKE_JOBS} \
++	    --preset=bootstrap_stage0_openbsd \
++	    build_subdir=stage0 install_destdir=${WRKBUILD}/install0
++	env SWIFT_BUILD_ROOT=${WRKBUILD} \
++	    PATH=${WRKBUILD}/install0/${TRUEPREFIX}/bin/:${PATH} \
++	  ${WRKSRC}/swift/utils/build-script \
++	    -j${MAKE_JOBS} \
++	    --preset=bootstrap_stage1_openbsd \
++	    build_subdir=stage1 install_destdir=${WRKBUILD}/install1
++	env SWIFT_BUILD_ROOT=${WRKBUILD} \
++	    PATH=${WRKBUILD}/install1/${TRUEPREFIX}/bin/:${PATH} \
++	  ${WRKSRC}/swift/utils/build-script \
++	    -j${MAKE_JOBS} \
++	    --preset=bootstrap_stage2_openbsd \
++	    build_subdir=stage2 install_destdir=${BOOTSTRAP_DIR}/../..
++
++.PHONY: bootstrap-package
++bootstrap-package: patch
++	${SETENV} ${MAKE_ENV} \
++	    PATH=${BOOTSTRAP_DIR}/bin:${PORTPATH} \
++	    SWIFT_BUILD_ROOT=${WRKBUILD} \
++	  ${WRKSRC}/swift/utils/build-script \
++	    -j${MAKE_JOBS} \
++	    --native-clang-tools-path=/usr/bin \
++	    --build-subdir=${WRKBUILD}/bootstrap \
++	    --extra-cmake-options="\
++		-DOPENBSD_BOOTSTRAP_RPATH=TRUE \
++		-DCMAKE_Swift_NUM_THREADS=1 \
++		-DBRIDGING_MODE=PURE" \
++	    --install-prefix=${TRUEPREFIX} \
++	    --llvm-targets-to-build=host \
++	    --swift-install-components="${COMPONENTS}" \
++	    --release -A \
++	    --foundation \
++	    --install-swift \
++	    --install-foundation \
++	    --install-libdispatch \
++	    --skip-early-swift-driver \
++	    --installable-package=${WRKDIR}/swift-bootstrap-${V}-${MACHINE_ARCH}.tar.gz
++
++.include <bsd.port.mk>
+Index: lang/swift/distinfo
+===================================================================
+RCS file: lang/swift/distinfo
+diff -N lang/swift/distinfo
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/distinfo	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,72 @@
++SHA256 (swift/0.1/swift-bootstrap-6.2.4-aarch64.tar.gz) = ZOo5+tjr09vkpmABoOIErCei3pwjA9x/A+bwh5ENNdQ=
++SHA256 (swift/0.1/swift-bootstrap-6.2.4-amd64.tar.gz) = pbv7Ke/Q2iYGuoemRphfcD9bupwsImnZoGvIjVUHU/I=
++SHA256 (swift/apple-swift-argument-parser-1.4.0.tar.gz) = 1brTodpm2fTOsKNHoZe4/dJDqR/2stcreO+wUrnW3TM=
++SHA256 (swift/apple-swift-asn1-1.3.2.tar.gz) = RQYb34CO0TinG1WryQyMv/iYC4Ll/9OdhuZaXL7jEkE=
++SHA256 (swift/apple-swift-atomics-1.2.0.tar.gz) = M9n0+67d7kvaOvK+EmeR7orPPTwkoiREV2QaINOa7BI=
++SHA256 (swift/apple-swift-certificates-1.10.0.tar.gz) = yyTygpDt3WKFP3H430T8PQyemFC7eyi4qrbKtWqGSEE=
++SHA256 (swift/apple-swift-collections-1.3.0.tar.gz) = 62qqzRpmYhcqsTnpFtaXeR9W9n6k71/MCh1lgymmlVI=
++SHA256 (swift/apple-swift-crypto-3.15.1.tar.gz) = RmVT5f6MsImTMJsMQeTh7N6OD42YMlvsUYk4F5Y8mQI=
++SHA256 (swift/apple-swift-docc-symbolkit-swift-6.2.4-RELEASE.tar.gz) = r7IkRuWjf6xixNxL+5/XkCOx9xMBF/mFXCwmBOjhvk4=
++SHA256 (swift/apple-swift-lmdb-swift-6.2.4-RELEASE.tar.gz) = 65GKTvTweG6O6MX2TFH/uwRnepW7AonRqBvVJzhx2JM=
++SHA256 (swift/apple-swift-markdown-swift-6.2.4-RELEASE.tar.gz) = UcLiO1OOReSbRCxQvg/cCwRfpbeQ37Bh1RU42/K64Nc=
++SHA256 (swift/apple-swift-nio-2.91.0.tar.gz) = V68BMKorolfUZv+r05Kz09wjPRbWmS7AYvOqz9fe/04=
++SHA256 (swift/apple-swift-system-1.5.0.tar.gz) = S/XV2wTUj0hCiTcbY9173O0NsasTB8SRJ7n4lDQaUh0=
++SHA256 (swift/swiftlang-indexstore-db-swift-6.2.4-RELEASE.tar.gz) = xMrxBMIYive0LOFg1RBrEifmbDWPc2ioPnQ69d8k1a0=
++SHA256 (swift/swiftlang-llvm-project-swift-6.2.4-RELEASE.tar.gz) = jgLPhhdzuLW4KbIIuokvJAqMPG0zYZDF7KMuOTt4Pko=
++SHA256 (swift/swiftlang-sourcekit-lsp-swift-6.2.4-RELEASE.tar.gz) = nNR8BP4fgctF18Uli7krogW20baWQUfHtrr5gzpQu8Q=
++SHA256 (swift/swiftlang-swift-build-swift-6.2.4-RELEASE.tar.gz) = CNi743H7aa8BdOcGtj6LjRWgoXhe/t64rZ6I9Z4x+Bw=
++SHA256 (swift/swiftlang-swift-cmark-swift-6.2.4-RELEASE.tar.gz) = YBK1nYQrKGRiOQGx6dUn1bMUr4eFjgr4Zh4ZHZLRSSI=
++SHA256 (swift/swiftlang-swift-corelibs-foundation-swift-6.2.4-RELEASE.tar.gz) = qmoeZLVJurHqBadHCzw4NrwcNCKXKjsogp+TFZOjIn0=
++SHA256 (swift/swiftlang-swift-corelibs-libdispatch-swift-DEVELOPMENT-SNAPSHOT-2026-02-19-a.tar.gz) = euvXKPXJo+z4Om0qVdndvMILI9fohVJB8WSQ8clkRYE=
++SHA256 (swift/swiftlang-swift-corelibs-xctest-swift-6.2.4-RELEASE.tar.gz) = rTnens0ODwi1GbrH3dl6M25EKKAd1PhcIFdcBJ5mFxk=
++SHA256 (swift/swiftlang-swift-docc-render-artifact-swift-6.2.4-RELEASE.tar.gz) = bsVs/NdmFnebSL6tJ/efhM1uYkchmRiTTuDOGN3xpes=
++SHA256 (swift/swiftlang-swift-docc-swift-6.2.4-RELEASE.tar.gz) = ID74S0PVhriQa+hTemKWDQicYHF9WVctW3sifHhkcJA=
++SHA256 (swift/swiftlang-swift-driver-swift-6.2.4-RELEASE.tar.gz) = apGl2mFE1neWPhVffXo10B9sG6oF1ik9z3+PiQuHQmY=
++SHA256 (swift/swiftlang-swift-experimental-string-processing-swift-6.2.4-RELEASE.tar.gz) = sKsyj+n4Dwi3HubF6Bx8OgAcXZJLIHtaFtgCeBW6GZg=
++SHA256 (swift/swiftlang-swift-format-swift-6.2.4-RELEASE.tar.gz) = BRe2sqjoG4y/FFpWdV0Zgg6EnSNwDFkLhLb1yiGUwPE=
++SHA256 (swift/swiftlang-swift-foundation-icu-swift-6.2.4-RELEASE.tar.gz) = q1K8yGOOw6iMaTGDj88QHgFTp8Z6w1nJGnA4qTmszpM=
++SHA256 (swift/swiftlang-swift-foundation-swift-6.2.4-RELEASE.tar.gz) = dMq36Rzwg0ZXIPnILcV7ZZ7HRNHOullkoP3EoxNPRoc=
++SHA256 (swift/swiftlang-swift-llbuild-swift-6.2.4-RELEASE.tar.gz) = DIakTU7P2zSnsC/KIIjiplQV+OkbSoA6baOOZ4yStsU=
++SHA256 (swift/swiftlang-swift-package-manager-swift-6.2.4-RELEASE.tar.gz) = OJUPzuGdNs7mLtXirFrCxjQU25/oV8Bn9fmSQ6Gt1S8=
++SHA256 (swift/swiftlang-swift-swift-6.2.4-RELEASE.tar.gz) = Oym4rs/W9AGi9GsolHhQpTrBzaRuVDgPvW05HE9xj60=
++SHA256 (swift/swiftlang-swift-syntax-swift-6.2.4-RELEASE.tar.gz) = U+ZE+5yCTOpyZ3XntI7lIXMjkikXp+G8VP3IbhMFj4A=
++SHA256 (swift/swiftlang-swift-testing-swift-6.2.4-RELEASE.tar.gz) = XBCuQCBu2thPd8IazwTXmV0K09iriveLcLKKuiVzrE0=
++SHA256 (swift/swiftlang-swift-toolchain-sqlite-1.0.1.tar.gz) = yHBOcMSEeo29R6r7JdKT++HhuvreFs+mTgT3UeM9sMo=
++SHA256 (swift/swiftlang-swift-tools-protocols-0.0.9.tar.gz) = zCOCCmNFI9baxLs6vW1ln37eUKTzi7SxAYh3UJXY4AA=
++SHA256 (swift/swiftlang-swift-tools-support-core-swift-6.2.4-RELEASE.tar.gz) = Os50GD5+rBMK2JmCCxFXAHXux8gOYZnTSgKncx+tLlE=
++SIZE (swift/0.1/swift-bootstrap-6.2.4-aarch64.tar.gz) = 204613100
++SIZE (swift/0.1/swift-bootstrap-6.2.4-amd64.tar.gz) = 204399381
++SIZE (swift/apple-swift-argument-parser-1.4.0.tar.gz) = 654550
++SIZE (swift/apple-swift-asn1-1.3.2.tar.gz) = 330311
++SIZE (swift/apple-swift-atomics-1.2.0.tar.gz) = 195733
++SIZE (swift/apple-swift-certificates-1.10.0.tar.gz) = 605572
++SIZE (swift/apple-swift-collections-1.3.0.tar.gz) = 5747597
++SIZE (swift/apple-swift-crypto-3.15.1.tar.gz) = 7209543
++SIZE (swift/apple-swift-docc-symbolkit-swift-6.2.4-RELEASE.tar.gz) = 199449
++SIZE (swift/apple-swift-lmdb-swift-6.2.4-RELEASE.tar.gz) = 155113
++SIZE (swift/apple-swift-markdown-swift-6.2.4-RELEASE.tar.gz) = 120940
++SIZE (swift/apple-swift-nio-2.91.0.tar.gz) = 1395558
++SIZE (swift/apple-swift-system-1.5.0.tar.gz) = 101074
++SIZE (swift/swiftlang-indexstore-db-swift-6.2.4-RELEASE.tar.gz) = 796157
++SIZE (swift/swiftlang-llvm-project-swift-6.2.4-RELEASE.tar.gz) = 221578803
++SIZE (swift/swiftlang-sourcekit-lsp-swift-6.2.4-RELEASE.tar.gz) = 853657
++SIZE (swift/swiftlang-swift-build-swift-6.2.4-RELEASE.tar.gz) = 3536513
++SIZE (swift/swiftlang-swift-cmark-swift-6.2.4-RELEASE.tar.gz) = 309535
++SIZE (swift/swiftlang-swift-corelibs-foundation-swift-6.2.4-RELEASE.tar.gz) = 2343228
++SIZE (swift/swiftlang-swift-corelibs-libdispatch-swift-DEVELOPMENT-SNAPSHOT-2026-02-19-a.tar.gz) = 599382
++SIZE (swift/swiftlang-swift-corelibs-xctest-swift-6.2.4-RELEASE.tar.gz) = 86351
++SIZE (swift/swiftlang-swift-docc-render-artifact-swift-6.2.4-RELEASE.tar.gz) = 295445
++SIZE (swift/swiftlang-swift-docc-swift-6.2.4-RELEASE.tar.gz) = 16573746
++SIZE (swift/swiftlang-swift-driver-swift-6.2.4-RELEASE.tar.gz) = 2489152
++SIZE (swift/swiftlang-swift-experimental-string-processing-swift-6.2.4-RELEASE.tar.gz) = 2589669
++SIZE (swift/swiftlang-swift-format-swift-6.2.4-RELEASE.tar.gz) = 299011
++SIZE (swift/swiftlang-swift-foundation-icu-swift-6.2.4-RELEASE.tar.gz) = 26060691
++SIZE (swift/swiftlang-swift-foundation-swift-6.2.4-RELEASE.tar.gz) = 2580962
++SIZE (swift/swiftlang-swift-llbuild-swift-6.2.4-RELEASE.tar.gz) = 13862763
++SIZE (swift/swiftlang-swift-package-manager-swift-6.2.4-RELEASE.tar.gz) = 1992467
++SIZE (swift/swiftlang-swift-swift-6.2.4-RELEASE.tar.gz) = 36422807
++SIZE (swift/swiftlang-swift-syntax-swift-6.2.4-RELEASE.tar.gz) = 1398105
++SIZE (swift/swiftlang-swift-testing-swift-6.2.4-RELEASE.tar.gz) = 433332
++SIZE (swift/swiftlang-swift-toolchain-sqlite-1.0.1.tar.gz) = 2769606
++SIZE (swift/swiftlang-swift-tools-protocols-0.0.9.tar.gz) = 167825
++SIZE (swift/swiftlang-swift-tools-support-core-swift-6.2.4-RELEASE.tar.gz) = 242072
+Index: lang/swift/patches/patch-llvm-project_compiler-rt_lib_builtins_cpu_model_aarch64_c
+===================================================================
+RCS file: lang/swift/patches/patch-llvm-project_compiler-rt_lib_builtins_cpu_model_aarch64_c
+diff -N lang/swift/patches/patch-llvm-project_compiler-rt_lib_builtins_cpu_model_aarch64_c
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-llvm-project_compiler-rt_lib_builtins_cpu_model_aarch64_c	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,21 @@
++Index: llvm-project/compiler-rt/lib/builtins/cpu_model/aarch64.c
++--- llvm-project/compiler-rt/lib/builtins/cpu_model/aarch64.c.orig
+++++ llvm-project/compiler-rt/lib/builtins/cpu_model/aarch64.c
++@@ -47,7 +47,7 @@ _Bool __aarch64_have_lse_atomics = false;
++ #elif defined(__ANDROID__)
++ #include "aarch64/hwcap.inc"
++ #include "aarch64/lse_atomics/android.inc"
++-#elif __has_include(<sys/auxv.h>)
+++#elif defined(__linux__) && __has_include(<sys/auxv.h>)
++ #include "aarch64/hwcap.inc"
++ #include "aarch64/lse_atomics/sysauxv.inc"
++ #else
++@@ -80,7 +80,7 @@ __attribute__((__visibility__("hidden"), __nocommon__)
++ #elif defined(__ANDROID__)
++ #include "aarch64/fmv/mrs.inc"
++ #include "aarch64/fmv/android.inc"
++-#elif __has_include(<sys/auxv.h>)
+++#elif defined(__linux__) && __has_include(<sys/auxv.h>)
++ #include "aarch64/fmv/mrs.inc"
++ #include "aarch64/fmv/sysauxv.inc"
++ #else
+Index: lang/swift/patches/patch-llvm-project_llvm_lib_CodeGen_TargetLoweringBase_cpp
+===================================================================
+RCS file: lang/swift/patches/patch-llvm-project_llvm_lib_CodeGen_TargetLoweringBase_cpp
+diff -N lang/swift/patches/patch-llvm-project_llvm_lib_CodeGen_TargetLoweringBase_cpp
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-llvm-project_llvm_lib_CodeGen_TargetLoweringBase_cpp	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,16 @@
++Upstreamed in llvm/llvm-project#125416.
++Not required for 6.3.
++
++Index: llvm-project/llvm/lib/CodeGen/TargetLoweringBase.cpp
++--- llvm-project/llvm/lib/CodeGen/TargetLoweringBase.cpp.orig
+++++ llvm-project/llvm/lib/CodeGen/TargetLoweringBase.cpp
++@@ -1961,6 +1961,9 @@ void TargetLoweringBase::insertSSPDeclarations(Module 
++ // Currently only support "standard" __stack_chk_guard.
++ // TODO: add LOAD_STACK_GUARD support.
++ Value *TargetLoweringBase::getSDagStackGuard(const Module &M) const {
+++  if (getTargetMachine().getTargetTriple().isOSOpenBSD()) {
+++    return M.getNamedValue("__guard_local");
+++  }
++   return M.getNamedValue("__stack_chk_guard");
++ }
++ 
+Index: lang/swift/patches/patch-sourcekit-lsp_Sources_TSCExtensions_Process+Run_swift
+===================================================================
+RCS file: lang/swift/patches/patch-sourcekit-lsp_Sources_TSCExtensions_Process+Run_swift
+diff -N lang/swift/patches/patch-sourcekit-lsp_Sources_TSCExtensions_Process+Run_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-sourcekit-lsp_Sources_TSCExtensions_Process+Run_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,15 @@
++Upstreamed in swiftlang/sourcekit-lsp#2390.
++Not required for 6.3.
++
++Index: sourcekit-lsp/Sources/TSCExtensions/Process+Run.swift
++--- sourcekit-lsp/Sources/TSCExtensions/Process+Run.swift.orig
+++++ sourcekit-lsp/Sources/TSCExtensions/Process+Run.swift
++@@ -179,7 +179,7 @@ private func setProcessPriority(pid: Process.ProcessID
++   if !SetPriorityClass(handle, UInt32(newPriority.windowsProcessPriority)) {
++     logger.fault("Failed to set process priority of \(pid) to \(newPriority.rawValue): \(GetLastError())")
++   }
++-  #elseif canImport(Darwin) || canImport(Android)
+++  #elseif canImport(Darwin) || canImport(Android) || os(OpenBSD)
++   // `setpriority` is only able to decrease a process's priority and cannot elevate it. Since Swift task’s priorities
++   // can only be elevated, this means that we can effectively only change a process's priority once, when it is created.
++   // All subsequent calls to `setpriority` will fail. Because of this, don't log an error.
+Index: lang/swift/patches/patch-sourcekit-lsp_Utilities_build-script-helper_py
+===================================================================
+RCS file: lang/swift/patches/patch-sourcekit-lsp_Utilities_build-script-helper_py
+diff -N lang/swift/patches/patch-sourcekit-lsp_Utilities_build-script-helper_py
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-sourcekit-lsp_Utilities_build-script-helper_py	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,43 @@
++Upstreamed in swiftlang/sourcekit-lsp#2570 and swiftlang/sourcekit-lsp#2579.
++Not required for 6.3.
++
++Do not upstream the -no-toolchain-stdlib-rpath flag addition.
++
++Index: sourcekit-lsp/Utilities/build-script-helper.py
++--- sourcekit-lsp/Utilities/build-script-helper.py.orig
+++++ sourcekit-lsp/Utilities/build-script-helper.py
++@@ -137,6 +137,12 @@ def get_swiftpm_options(swift_exec: str, args: argpars
++         swiftpm_args += [
++             '-Xlinker', '-rpath', '-Xlinker', '$ORIGIN/../lib/swift/android',
++         ]
+++    elif build_os.startswith('openbsd'):
+++        swiftpm_args += [
+++            '-Xlinker', '-rpath', '-Xlinker', '$ORIGIN/../lib/swift/openbsd',
+++            '-Xlinker', '-z', '-Xlinker', 'origin',
+++            '-Xswiftc', '-no-toolchain-stdlib-rpath',
+++        ]
++     elif not build_os.startswith('macosx'):
++         # Library rpath for swift, dispatch, Foundation, etc. when installing
++         swiftpm_args += [
++@@ -258,9 +264,10 @@ def install(swift_exec: str, args: argparse.Namespace)
++     additional_env = get_swiftpm_environment_variables(swift_exec, args)
++     bin_path = swiftpm_bin_path(swift_exec, swiftpm_args=swiftpm_args, additional_env=additional_env)
++ 
++-    build_single_product('sourcekit-lsp', swift_exec, args)
++-    build_single_product('SwiftSourceKitPlugin', swift_exec, args)
++-    build_single_product('SwiftSourceKitClientPlugin', swift_exec, args)
+++    if not args.install_only:
+++        build_single_product('sourcekit-lsp', swift_exec, args)
+++        build_single_product('SwiftSourceKitPlugin', swift_exec, args)
+++        build_single_product('SwiftSourceKitClientPlugin', swift_exec, args)
++ 
++     if platform.system() == 'Darwin':
++         dynamic_library_extension = "dylib"
++@@ -329,6 +336,7 @@ def parse_args() -> argparse.Namespace:
++     install_parser = subparsers.add_parser('install', help='build the package')
++     add_common_args(install_parser)
++     install_parser.add_argument('--prefix', dest='install_prefixes', nargs='*', metavar='PATHS', help="paths to install sourcekit-lsp, default: 'toolchain/bin'")
+++    install_parser.add_argument('--install-only', action='store_true', default=False)
++ 
++     args = parser.parse_args(sys.argv[1:])
++ 
+Index: lang/swift/patches/patch-swift-build_Sources_SWBUtil_Misc_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-build_Sources_SWBUtil_Misc_swift
+diff -N lang/swift/patches/patch-swift-build_Sources_SWBUtil_Misc_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-build_Sources_SWBUtil_Misc_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,14 @@
++Upstreaming not required, was removed.
++
++Index: swift-build/Sources/SWBUtil/Misc.swift
++--- swift-build/Sources/SWBUtil/Misc.swift.orig
+++++ swift-build/Sources/SWBUtil/Misc.swift
++@@ -65,7 +65,7 @@ public func parseUmbrellaHeaderName(_ string: String) 
++     return Static.regex.matchGroups(in: string).first?[0]
++ }
++ 
++-#if os(Android)
+++#if os(Android) || os(OpenBSD)
++ public typealias FILEPointer = OpaquePointer
++ #else
++ public typealias FILEPointer = UnsafeMutablePointer<FILE>
+Index: lang/swift/patches/patch-swift-corelibs-foundation_Sources_CoreFoundation_CFPlatform_c
+===================================================================
+RCS file: lang/swift/patches/patch-swift-corelibs-foundation_Sources_CoreFoundation_CFPlatform_c
+diff -N lang/swift/patches/patch-swift-corelibs-foundation_Sources_CoreFoundation_CFPlatform_c
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-corelibs-foundation_Sources_CoreFoundation_CFPlatform_c	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,36 @@
++Upstreamed in swiftlang/swift-corelibs-foundation#5289.
++Not required for 6.3.
++
++Index: swift-corelibs-foundation/Sources/CoreFoundation/CFPlatform.c
++--- swift-corelibs-foundation/Sources/CoreFoundation/CFPlatform.c.orig
+++++ swift-corelibs-foundation/Sources/CoreFoundation/CFPlatform.c
++@@ -266,10 +266,12 @@ const char *_CFProcessPath(void) {
++     }
++ 
++     // Search PATH.
++-    if (argv0) {
++-        char *paths = getenv("PATH");
+++    char *path = getenv("PATH");
+++    if (argv0 && path) {
+++        char *paths = strdup(path);
+++        char *remaining = paths;
++         char *p = NULL;
++-        while ((p = strsep(&paths, ":")) != NULL) {
+++        while ((p = strsep(&remaining, ":")) != NULL) {
++             char pp[PATH_MAX];
++             int l = snprintf(pp, PATH_MAX, "%s/%s", p, argv0);
++             if (l >= PATH_MAX) {
++@@ -283,11 +285,13 @@ const char *_CFProcessPath(void) {
++                 _CFSetProgramNameFromPath(res);
++                 free(argv0);
++                 free(res);
+++                free(paths);
++                 return __CFProcessPath;
++             }
++             free(res);
++         }
++         free(argv0);
+++        free(paths);
++     }
++ 
++     // See if the shell will help.
+Index: lang/swift/patches/patch-swift-corelibs-foundation_Sources_plutil_CMakeLists_txt
+===================================================================
+RCS file: lang/swift/patches/patch-swift-corelibs-foundation_Sources_plutil_CMakeLists_txt
+diff -N lang/swift/patches/patch-swift-corelibs-foundation_Sources_plutil_CMakeLists_txt
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-corelibs-foundation_Sources_plutil_CMakeLists_txt	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,14 @@
++Do not upstream.
++
++Index: swift-corelibs-foundation/Sources/plutil/CMakeLists.txt
++--- swift-corelibs-foundation/Sources/plutil/CMakeLists.txt.orig
+++++ swift-corelibs-foundation/Sources/plutil/CMakeLists.txt
++@@ -23,7 +23,7 @@ target_link_libraries(plutil PRIVATE
++ 	Foundation)
++ 
++ set_target_properties(plutil PROPERTIES
++-	INSTALL_RPATH "$ORIGIN/../lib/swift/${SWIFT_SYSTEM_NAME}")
+++	INSTALL_RPATH "$ORIGIN/../lib/swift/${SWIFT_SYSTEM_NAME}:$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/swift/${SWIFT_SYSTEM_NAME}")
++ 
++ set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS plutil)
++ install(TARGETS plutil
+Index: lang/swift/patches/patch-swift-docc_Sources_SwiftDocCUtilities_Utility_DirectoryMonitor_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-docc_Sources_SwiftDocCUtilities_Utility_DirectoryMonitor_swift
+diff -N lang/swift/patches/patch-swift-docc_Sources_SwiftDocCUtilities_Utility_DirectoryMonitor_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-docc_Sources_SwiftDocCUtilities_Utility_DirectoryMonitor_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,15 @@
++Upstreamed in swiftlang/swift-docc#1348.
++Not required for 6.3.
++
++Index: swift-docc/Sources/SwiftDocCUtilities/Utility/DirectoryMonitor.swift
++--- swift-docc/Sources/SwiftDocCUtilities/Utility/DirectoryMonitor.swift.orig
+++++ swift-docc/Sources/SwiftDocCUtilities/Utility/DirectoryMonitor.swift
++@@ -11,7 +11,7 @@
++ import Foundation
++ import SwiftDocC
++ 
++-#if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD)
+++#if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD) && !os(OpenBSD)
++ import Darwin
++ 
++ /// A throttle object to filter events that come too fast.
+Index: lang/swift/patches/patch-swift-docc_Sources_SwiftDocCUtilities_Utility_Signal_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-docc_Sources_SwiftDocCUtilities_Utility_Signal_swift
+diff -N lang/swift/patches/patch-swift-docc_Sources_SwiftDocCUtilities_Utility_Signal_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-docc_Sources_SwiftDocCUtilities_Utility_Signal_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,15 @@
++Upstreamed in swiftlang/swift-docc#1348.
++Not required for 6.3.
++
++Index: swift-docc/Sources/SwiftDocCUtilities/Utility/Signal.swift
++--- swift-docc/Sources/SwiftDocCUtilities/Utility/Signal.swift.orig
+++++ swift-docc/Sources/SwiftDocCUtilities/Utility/Signal.swift
++@@ -27,7 +27,7 @@ public struct Signal {
++         signalAction.__sigaction_handler = unsafeBitCast(callback, to: sigaction.__Unnamed_union___sigaction_handler.self)
++         #elseif os(Android)
++         signalAction.sa_handler = callback
++-        #elseif os(FreeBSD)
+++        #elseif os(FreeBSD) || os(OpenBSD)
++         signalAction.__sigaction_u.__sa_handler = callback
++         #else
++         signalAction.__sigaction_u = unsafeBitCast(callback, to: __sigaction_u.self)
+Index: lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Benchmark_Benchmark_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Benchmark_Benchmark_swift
+diff -N lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Benchmark_Benchmark_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Benchmark_Benchmark_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,15 @@
++Upstreamed in swiftlang/swift-docc#1348.
++Not required for 6.3.
++
++Index: swift-docc/Sources/SwiftDocC/Benchmark/Benchmark.swift
++--- swift-docc/Sources/SwiftDocC/Benchmark/Benchmark.swift.orig
+++++ swift-docc/Sources/SwiftDocC/Benchmark/Benchmark.swift
++@@ -48,6 +48,8 @@ public class Benchmark: Encodable {
++     public let platform = "Android"
++     #elseif os(FreeBSD)
++     public let platform = "FreeBSD"
+++    #elseif os(OpenBSD)
+++    public let platform = "OpenBSD"
++     #else
++     public let platform = "unsupported"
++     #endif
+Index: lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Benchmark_Metrics_PeakMemory_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Benchmark_Metrics_PeakMemory_swift
+diff -N lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Benchmark_Metrics_PeakMemory_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Benchmark_Metrics_PeakMemory_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,15 @@
++Upstreamed in swiftlang/swift-docc#1348.
++Not required for 6.3.
++
++Index: swift-docc/Sources/SwiftDocC/Benchmark/Metrics/PeakMemory.swift
++--- swift-docc/Sources/SwiftDocC/Benchmark/Metrics/PeakMemory.swift.orig
+++++ swift-docc/Sources/SwiftDocC/Benchmark/Metrics/PeakMemory.swift
++@@ -67,7 +67,7 @@ extension Benchmark {
++             ) else { return nil }
++             return Int64(pmcStats.PeakWorkingSetSize)
++         }
++-        #elseif os(FreeBSD)
+++        #elseif os(FreeBSD) || os(OpenBSD)
++         private static func peakMemory() -> Int64? {
++             var usage = rusage()
++             if (getrusage(RUSAGE_SELF, &usage) == -1) {
+Index: lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Model_Rendering_RenderContext_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Model_Rendering_RenderContext_swift
+diff -N lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Model_Rendering_RenderContext_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Model_Rendering_RenderContext_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,15 @@
++Upstreamed in swiftlang/swift-docc#1348.
++Not required for 6.3.
++
++Index: swift-docc/Sources/SwiftDocC/Model/Rendering/RenderContext.swift
++--- swift-docc/Sources/SwiftDocC/Model/Rendering/RenderContext.swift.orig
+++++ swift-docc/Sources/SwiftDocC/Model/Rendering/RenderContext.swift
++@@ -61,7 +61,7 @@ public struct RenderContext {
++             )
++         }
++         
++-        #if os(macOS) || os(iOS) || os(Android) || os(Windows) || os(FreeBSD)
+++        #if os(macOS) || os(iOS) || os(Android) || os(Windows) || os(FreeBSD) || os(OpenBSD)
++         // Concurrently render content on macOS/iOS, Windows & Android
++         let results: [(reference: ResolvedTopicReference, content: RenderReferenceStore.TopicContent)] = references.concurrentPerform { reference, results in
++             results.append((reference, renderContentFor(reference)))
+Index: lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Utility_FoundationExtensions_AutoreleasepoolShim_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Utility_FoundationExtensions_AutoreleasepoolShim_swift
+diff -N lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Utility_FoundationExtensions_AutoreleasepoolShim_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Utility_FoundationExtensions_AutoreleasepoolShim_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,15 @@
++Upstreamed in swiftlang/swift-docc#1348.
++Not required for 6.3.
++
++Index: swift-docc/Sources/SwiftDocC/Utility/FoundationExtensions/AutoreleasepoolShim.swift
++--- swift-docc/Sources/SwiftDocC/Utility/FoundationExtensions/AutoreleasepoolShim.swift.orig
+++++ swift-docc/Sources/SwiftDocC/Utility/FoundationExtensions/AutoreleasepoolShim.swift
++@@ -8,7 +8,7 @@
++  See https://swift.org/CONTRIBUTORS.txt for Swift project authors
++ */
++ 
++-#if os(Linux) || os(Android) || os(Windows) || os(FreeBSD)
+++#if os(Linux) || os(Android) || os(Windows) || os(FreeBSD) || os(OpenBSD)
++ /// A shim for non-ObjC targets that runs the given block of code.
++ ///
++ /// The existence of this shim allows you the use of auto-release pools to optimize memory footprint on Darwin platforms while maintaining
+Index: lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Utility_Synchronization_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Utility_Synchronization_swift
+diff -N lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Utility_Synchronization_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-docc_Sources_SwiftDocC_Utility_Synchronization_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,42 @@
++Upstreamed in swiftlang/swift-docc#1348.
++Not required for 6.3.
++
++Index: swift-docc/Sources/SwiftDocC/Utility/Synchronization.swift
++--- swift-docc/Sources/SwiftDocC/Utility/Synchronization.swift.orig
+++++ swift-docc/Sources/SwiftDocC/Utility/Synchronization.swift
++@@ -35,7 +35,7 @@ public class Synchronized<Value> {
++     #elseif os(Linux) || os(Android)
++     /// A lock type appropriate for the current platform.
++     var lock: UnsafeMutablePointer<pthread_mutex_t>
++-    #elseif os(FreeBSD)
+++    #elseif os(FreeBSD) || os(OpenBSD)
++     /// A lock type appropriate for the current platform.
++     var lock: UnsafeMutablePointer<pthread_mutex_t?>
++     #elseif os(Windows)
++@@ -56,7 +56,7 @@ public class Synchronized<Value> {
++         lock = UnsafeMutablePointer<pthread_mutex_t>.allocate(capacity: 1)
++         lock.initialize(to: pthread_mutex_t())
++         pthread_mutex_init(lock, nil)
++-        #elseif os(FreeBSD)
+++        #elseif os(FreeBSD) || os(OpenBSD)
++         lock = UnsafeMutablePointer<pthread_mutex_t?>.allocate(capacity: 1)
++         lock.initialize(to: nil)
++         pthread_mutex_init(lock, nil)
++@@ -84,7 +84,7 @@ public class Synchronized<Value> {
++         #elseif os(Linux) || os(Android)
++         pthread_mutex_lock(lock)
++         defer { pthread_mutex_unlock(lock) }
++-        #elseif os(FreeBSD)
+++        #elseif os(FreeBSD) || os(OpenBSD)
++         pthread_mutex_lock(lock)
++         defer { pthread_mutex_unlock(lock) }
++         #elseif os(Windows)
++@@ -123,7 +123,7 @@ extension Lock {
++         #elseif os(Linux) || os(Android)
++         pthread_mutex_lock(lock)
++         defer { pthread_mutex_unlock(lock) }
++-        #elseif os(FreeBSD)
+++        #elseif os(FreeBSD) || os(OpenBSD)
++         pthread_mutex_lock(lock)
++         defer { pthread_mutex_unlock(lock) }
++         #elseif os(Windows)
+Index: lang/swift/patches/patch-swift-docc_Sources_docc_main_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-docc_Sources_docc_main_swift
+diff -N lang/swift/patches/patch-swift-docc_Sources_docc_main_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-docc_Sources_docc_main_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,15 @@
++Upstreamed in swiftlang/swift-docc#1348.
++Not required for 6.3.
++
++Index: swift-docc/Sources/docc/main.swift
++--- swift-docc/Sources/docc/main.swift.orig
+++++ swift-docc/Sources/docc/main.swift
++@@ -8,7 +8,7 @@
++  See https://swift.org/CONTRIBUTORS.txt for Swift project authors
++ */
++ 
++-#if os(macOS) || os(Linux) || os(Android) || os(Windows) || os(FreeBSD)
+++#if os(macOS) || os(Linux) || os(Android) || os(Windows) || os(FreeBSD) || os(OpenBSD)
++ import SwiftDocCUtilities
++ 
++ await Task {
+Index: lang/swift/patches/patch-swift-docc_Tests_SwiftDocCTests_Servers_DocumentationSchemeHandlerTests_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-docc_Tests_SwiftDocCTests_Servers_DocumentationSchemeHandlerTests_swift
+diff -N lang/swift/patches/patch-swift-docc_Tests_SwiftDocCTests_Servers_DocumentationSchemeHandlerTests_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-docc_Tests_SwiftDocCTests_Servers_DocumentationSchemeHandlerTests_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,24 @@
++Upstreamed in swiftlang/swift-docc#1348.
++Not required for 6.3.
++
++Index: swift-docc/Tests/SwiftDocCTests/Servers/DocumentationSchemeHandlerTests.swift
++--- swift-docc/Tests/SwiftDocCTests/Servers/DocumentationSchemeHandlerTests.swift.orig
+++++ swift-docc/Tests/SwiftDocCTests/Servers/DocumentationSchemeHandlerTests.swift
++@@ -24,7 +24,7 @@ class DocumentationSchemeHandlerTests: XCTestCase {
++         forResource: "LegacyBundle_DoNotUseInNewTests", withExtension: "docc", subdirectory: "Test Bundles")!
++     
++     func testDocumentationSchemeHandler() {
++-        #if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD)
+++        #if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD) && !os(OpenBSD)
++         let topicSchemeHandler = DocumentationSchemeHandler(withTemplateURL: templateURL)
++         
++         let request = URLRequest(url:  baseURL.appendingPathComponent("/images/figure1.jpg"))
++@@ -50,7 +50,7 @@ class DocumentationSchemeHandlerTests: XCTestCase {
++     }
++     
++     func testSetData() {
++-        #if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD)
+++        #if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD) && !os(OpenBSD)
++         let topicSchemeHandler = DocumentationSchemeHandler(withTemplateURL: templateURL)
++         
++         let data = "hello!".data(using: .utf8)!
+Index: lang/swift/patches/patch-swift-docc_Tests_SwiftDocCTests_Servers_FileServerTests_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-docc_Tests_SwiftDocCTests_Servers_FileServerTests_swift
+diff -N lang/swift/patches/patch-swift-docc_Tests_SwiftDocCTests_Servers_FileServerTests_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-docc_Tests_SwiftDocCTests_Servers_FileServerTests_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,15 @@
++Upstreamed in swiftlang/swift-docc#1348.
++Not required for 6.3.
++
++Index: swift-docc/Tests/SwiftDocCTests/Servers/FileServerTests.swift
++--- swift-docc/Tests/SwiftDocCTests/Servers/FileServerTests.swift.orig
+++++ swift-docc/Tests/SwiftDocCTests/Servers/FileServerTests.swift
++@@ -164,7 +164,7 @@ class FileServerTests: XCTestCase {
++         (response, data) = fileServer.response(to: failingRequest)
++         XCTAssertNil(data)
++         // Initializing a URLResponse with `nil` as MIME type in Linux returns nil
++-        #if os(Linux) || os(Android) || os(Windows) || os(FreeBSD)
+++        #if os(Linux) || os(Android) || os(Windows) || os(FreeBSD) || os(OpenBSD)
++         XCTAssertNil(response.mimeType)
++         #else
++         // Doing the same in macOS or iOS returns the default MIME type
+Index: lang/swift/patches/patch-swift-docc_Tests_SwiftDocCTests_Utility_LMDBTests_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-docc_Tests_SwiftDocCTests_Utility_LMDBTests_swift
+diff -N lang/swift/patches/patch-swift-docc_Tests_SwiftDocCTests_Utility_LMDBTests_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-docc_Tests_SwiftDocCTests_Utility_LMDBTests_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,15 @@
++Upstreamed in swiftlang/swift-docc#1348.
++Not required for 6.3.
++
++Index: swift-docc/Tests/SwiftDocCTests/Utility/LMDBTests.swift
++--- swift-docc/Tests/SwiftDocCTests/Utility/LMDBTests.swift.orig
+++++ swift-docc/Tests/SwiftDocCTests/Utility/LMDBTests.swift
++@@ -237,7 +237,7 @@ final class SwiftLMDBTests: XCTestCase {
++     }
++     
++     func testArrayOfInt() throws {
++-#if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD)
+++#if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD) && !os(OpenBSD)
++         let database = try environment.openDatabase()
++         
++         var array: [UInt32] = []
+Index: lang/swift/patches/patch-swift-docc_Tests_SwiftDocCUtilitiesTests_C+Extensions_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-docc_Tests_SwiftDocCUtilitiesTests_C+Extensions_swift
+diff -N lang/swift/patches/patch-swift-docc_Tests_SwiftDocCUtilitiesTests_C+Extensions_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-docc_Tests_SwiftDocCUtilitiesTests_C+Extensions_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,15 @@
++Upstreamed in swiftlang/swift-docc#1348.
++Not required for 6.3.
++
++Index: swift-docc/Tests/SwiftDocCUtilitiesTests/C+Extensions.swift
++--- swift-docc/Tests/SwiftDocCUtilitiesTests/C+Extensions.swift.orig
+++++ swift-docc/Tests/SwiftDocCUtilitiesTests/C+Extensions.swift
++@@ -11,7 +11,7 @@
++ import Foundation
++ #if os(Windows)
++ import ucrt
++-#elseif os(Linux) || os(Android) || os(FreeBSD)
+++#elseif os(Linux) || os(Android) || os(FreeBSD) || os(OpenBSD)
++ import Glibc
++ #else
++ import Darwin
+Index: lang/swift/patches/patch-swift-docc_Tests_SwiftDocCUtilitiesTests_DirectoryMonitorTests_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-docc_Tests_SwiftDocCUtilitiesTests_DirectoryMonitorTests_swift
+diff -N lang/swift/patches/patch-swift-docc_Tests_SwiftDocCUtilitiesTests_DirectoryMonitorTests_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-docc_Tests_SwiftDocCUtilitiesTests_DirectoryMonitorTests_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,51 @@
++Upstreamed in swiftlang/swift-docc#1348.
++Not required for 6.3.
++
++Index: swift-docc/Tests/SwiftDocCUtilitiesTests/DirectoryMonitorTests.swift
++--- swift-docc/Tests/SwiftDocCUtilitiesTests/DirectoryMonitorTests.swift.orig
+++++ swift-docc/Tests/SwiftDocCUtilitiesTests/DirectoryMonitorTests.swift
++@@ -11,7 +11,7 @@
++ import XCTest
++ @testable import SwiftDocCUtilities
++ 
++-#if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD)
+++#if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD) && !os(OpenBSD)
++ fileprivate extension NSNotification.Name {
++     static let testNodeUpdated = NSNotification.Name(rawValue: "testNodeUpdated")
++     static let testDirectoryReloaded = NSNotification.Name(rawValue: "testDirectoryReloaded")
++@@ -24,7 +24,7 @@ func fileURLsAreEqual(_ url1: URL, _ url2: URL) -> Boo
++ #endif
++ 
++ class DirectoryMonitorTests: XCTestCase {
++-    #if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD)
+++    #if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD) && !os(OpenBSD)
++     // - MARK: Directory watching test infra
++     
++     /// Method that automates setting up a directory monitor, setting up the relevant expectations for a test,
++@@ -118,7 +118,7 @@ class DirectoryMonitorTests: XCTestCase {
++     /// Tests a succession of file system changes and verifies that they produce
++     /// the expected monitor events.
++     func testMonitorUpdates() throws {
++-        #if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD)
+++        #if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD) && !os(OpenBSD)
++ 
++         // Create temp folder & sub-folder.
++         let tempSubfolderURL = try createTemporaryDirectory(named: "subfolder")
++@@ -167,7 +167,7 @@ class DirectoryMonitorTests: XCTestCase {
++     }
++     
++     func testMonitorDoesNotTriggerUpdates() throws {
++-        #if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD)
+++        #if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD) && !os(OpenBSD)
++         
++         // Create temp folder & sub-folder.
++         let tempSubfolderURL = try createTemporaryDirectory(named: "subfolder")
++@@ -200,7 +200,7 @@ class DirectoryMonitorTests: XCTestCase {
++     
++     /// Tests a zero sum change aggregation triggers an event.
++     func testMonitorZeroSumSizeChangesUpdates() throws {
++-        #if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD)
+++        #if !os(Linux) && !os(Android) && !os(Windows) && !os(FreeBSD) && !os(OpenBSD)
++ 
++         // Create temp folder & sub-folder.
++         let tempSubfolderURL = try createTemporaryDirectory(named: "subfolder")
+Index: lang/swift/patches/patch-swift-docc_build-script-helper_py
+===================================================================
+RCS file: lang/swift/patches/patch-swift-docc_build-script-helper_py
+diff -N lang/swift/patches/patch-swift-docc_build-script-helper_py
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-docc_build-script-helper_py	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,47 @@
++Upstreamed in swiftlang/swift-docc#1348 and swiftlang/swift-docc#1486.
++Not required for 6.3.
++
++Do not upstream the -no-toolchain-stdlib-rpath flag addition.
++
++Index: swift-docc/build-script-helper.py
++--- swift-docc/build-script-helper.py.orig
+++++ swift-docc/build-script-helper.py
++@@ -45,6 +45,7 @@ def parse_args(args):
++   parser.add_argument('--copy-doccrender-from', default=None, help='The location to copy an existing Swift-DocC-Render template from.')
++   parser.add_argument('--copy-doccrender-to', default=None, help='The location to install an existing Swift-DocC-Render template to.')
++   parser.add_argument("--cross-compile-hosts", dest="cross_compile_hosts", help="List of cross compile hosts targets.", default=[])
+++  parser.add_argument('--install-only', action='store_true', default=False)
++   
++   parsed = parser.parse_args(args)
++ 
++@@ -124,11 +125,12 @@ def run(args):
++     print("** Installing %s **" % package_name)
++     
++     try:
++-      invoke_swift(action='build',
++-        products=['docc'],
++-        env=env,
++-        args=args,
++-        swiftpm_args=get_swiftpm_options('install', args))
+++      if not args.install_only:
+++        invoke_swift(action='build',
+++          products=['docc'],
+++          env=env,
+++          args=args,
+++          swiftpm_args=get_swiftpm_options('install', args))
++       install(args, env)
++     except subprocess.CalledProcessError as e:
++       printerr('FAIL: Installing %s failed' % package_name)
++@@ -165,6 +167,12 @@ def get_swiftpm_options(action, args):
++       # Relative library rpath for swift; will only be used when /usr/lib/swift
++       # is not available.
++       '-Xlinker', '-rpath', '-Xlinker', '@executable_path/../lib/swift/macosx',
+++    ]
+++  elif build_os.startswith('openbsd'):
+++    swiftpm_args += [
+++      '-Xlinker', '-rpath', '-Xlinker', '$ORIGIN/../lib/swift/openbsd',
+++      '-Xlinker', '-z', '-Xlinker', 'origin',
+++      '-Xswiftc', '-no-toolchain-stdlib-rpath',
++     ]
++   else:
++     swiftpm_args += [
+Index: lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Jobs_GenericUnixToolchain+LinkerSupport_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Jobs_GenericUnixToolchain+LinkerSupport_swift
+diff -N lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Jobs_GenericUnixToolchain+LinkerSupport_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Jobs_GenericUnixToolchain+LinkerSupport_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,12 @@
++Index: swift-driver/Sources/SwiftDriver/Jobs/GenericUnixToolchain+LinkerSupport.swift
++--- swift-driver/Sources/SwiftDriver/Jobs/GenericUnixToolchain+LinkerSupport.swift.orig
+++++ swift-driver/Sources/SwiftDriver/Jobs/GenericUnixToolchain+LinkerSupport.swift
++@@ -128,7 +128,7 @@ extension GenericUnixToolchain {
++         }
++       }
++ 
++-      if targetTriple.os == .openbsd && targetTriple.arch == .aarch64 {
+++      if targetTriple.os == .openbsd && (targetTriple.arch == .aarch64 || targetTriple.arch == .x86_64) {
++         let btcfiEnabled = targetInfo.target.openbsdBTCFIEnabled ?? false
++         if !btcfiEnabled {
++           commandLine.appendFlag("-Xlinker")
+Index: lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_GenericUnixToolchain_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_GenericUnixToolchain_swift
+diff -N lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_GenericUnixToolchain_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_GenericUnixToolchain_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,12 @@
++Index: swift-driver/Sources/SwiftDriver/Toolchains/GenericUnixToolchain.swift
++--- swift-driver/Sources/SwiftDriver/Toolchains/GenericUnixToolchain.swift.orig
+++++ swift-driver/Sources/SwiftDriver/Toolchains/GenericUnixToolchain.swift
++@@ -163,7 +163,7 @@ public final class GenericUnixToolchain: Toolchain {
++       try commandLine.appendPath(VirtualPath(path: sysroot.pathString))
++     }
++ 
++-    if driver.targetTriple.os == .openbsd && driver.targetTriple.arch == .aarch64 {
+++    if driver.targetTriple.os == .openbsd && (driver.targetTriple.arch == .aarch64 || driver.targetTriple.arch == .x86_64) {
++       if frontendTargetInfo.target.openbsdBTCFIEnabled ?? false {
++         commandLine.appendFlag(.Xcc)
++         commandLine.appendFlag("-Xclang=-msign-return-address=non-leaf")
+Index: lang/swift/patches/patch-swift-driver_Utilities_build-script-helper_py
+===================================================================
+RCS file: lang/swift/patches/patch-swift-driver_Utilities_build-script-helper_py
+diff -N lang/swift/patches/patch-swift-driver_Utilities_build-script-helper_py
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-driver_Utilities_build-script-helper_py	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,19 @@
++Upstreamed in swiftlang/swift-driver#1980.
++Not required for 6.3.
++
++Index: swift-driver/Utilities/build-script-helper.py
++--- swift-driver/Utilities/build-script-helper.py.orig
+++++ swift-driver/Utilities/build-script-helper.py
++@@ -105,6 +105,12 @@ def get_swiftpm_options(args):
++       swiftpm_args += [
++         '-Xlinker', '-rpath', '-Xlinker', '$ORIGIN/../lib/swift/android',
++       ]
+++    elif '-openbsd' in args.build_target:
+++      swiftpm_args += [
+++        '-Xlinker', '-rpath', '-Xlinker', '$ORIGIN/../lib/swift/openbsd',
+++        '-Xlinker', '-z', '-Xlinker', 'origin',
+++        '-Xswiftc', '-no-toolchain-stdlib-rpath',
+++      ]
++     else:
++       # Library rpath for swift, dispatch, Foundation, etc. when installing
++       swiftpm_args += [
+Index: lang/swift/patches/patch-swift-format_build-script-helper_py
+===================================================================
+RCS file: lang/swift/patches/patch-swift-format_build-script-helper_py
+diff -N lang/swift/patches/patch-swift-format_build-script-helper_py
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-format_build-script-helper_py	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,39 @@
++Index: swift-format/build-script-helper.py
++--- swift-format/build-script-helper.py.orig
+++++ swift-format/build-script-helper.py
++@@ -109,7 +109,13 @@ def get_swiftpm_options(
++         swift_exec, cross_compile_config=cross_compile_config
++     )
++     build_os = build_target.split("-")[2]
++-    if not build_os.startswith("macosx"):
+++    if build_os.startswith('openbsd'):
+++        args += [
+++            '-Xlinker', '-rpath', '-Xlinker', '$ORIGIN/../lib/swift/openbsd',
+++            '-Xlinker', '-z', '-Xlinker', 'origin',
+++            '-Xswiftc', '-no-toolchain-stdlib-rpath',
+++        ]
+++    elif not build_os.startswith("macosx"):
++         # Library rpath for swift, dispatch, Foundation, etc. when installing
++         args += [
++             "-Xlinker",
++@@ -212,7 +218,8 @@ def test(args: argparse.Namespace) -> None:
++ 
++ 
++ def install(args: argparse.Namespace) -> None:
++-    build(args)
+++    if not args.install_only:
+++        build(args)
++ 
++     print("** Installing swift-format **")
++ 
++@@ -296,6 +303,10 @@ def parse_args() -> argparse.Namespace:
++         metavar="PATHS",
++         help="install path",
++     )
+++    install_parser.add_argument(
+++        "--install-only",
+++        action="store_true",
+++        default=False)
++ 
++     parsed = parser.parse_args(sys.argv[1:])
++ 
+Index: lang/swift/patches/patch-swift-lmdb_libraries_liblmdb_mdb_c
+===================================================================
+RCS file: lang/swift/patches/patch-swift-lmdb_libraries_liblmdb_mdb_c
+diff -N lang/swift/patches/patch-swift-lmdb_libraries_liblmdb_mdb_c
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-lmdb_libraries_liblmdb_mdb_c	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,13 @@
++See databases/lmdb.
++
++Index: swift-lmdb/libraries/liblmdb/mdb.c
++--- swift-lmdb/libraries/liblmdb/mdb.c.orig
+++++ swift-lmdb/libraries/liblmdb/mdb.c
++@@ -5597,6 +5597,7 @@ mdb_env_open(MDB_env *env, const char *path, unsigned 
++ 		/* silently ignore WRITEMAP when we're only getting read access */
++ 		flags &= ~MDB_WRITEMAP;
++ 	} else {
+++		flags |= MDB_WRITEMAP;
++ 		if (!((env->me_free_pgs = mdb_midl_alloc(MDB_IDL_UM_MAX)) &&
++ 			  (env->me_dirty_list = calloc(MDB_IDL_UM_SIZE, sizeof(MDB_ID2)))))
++ 			rc = ENOMEM;
+Index: lang/swift/patches/patch-swift-testing_Sources_Testing_CMakeLists_txt
+===================================================================
+RCS file: lang/swift/patches/patch-swift-testing_Sources_Testing_CMakeLists_txt
+diff -N lang/swift/patches/patch-swift-testing_Sources_Testing_CMakeLists_txt
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-testing_Sources_Testing_CMakeLists_txt	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,16 @@
++Upstreamed in swiftlang/swift-testing#1318.
++Not required for 6.3.
++
++Index: swift-testing/Sources/Testing/CMakeLists.txt
++--- swift-testing/Sources/Testing/CMakeLists.txt.orig
+++++ swift-testing/Sources/Testing/CMakeLists.txt
++@@ -117,7 +117,8 @@ if(NOT APPLE)
++   endif()
++   target_link_libraries(Testing PUBLIC
++     Foundation)
++-  if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+++  if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR
+++      CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
++     target_link_libraries(Testing PUBLIC execinfo)
++   endif()
++ endif()
+Index: lang/swift/patches/patch-swift-tools-support-core_Sources_TSCBasic_WritableByteStream_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift-tools-support-core_Sources_TSCBasic_WritableByteStream_swift
+diff -N lang/swift/patches/patch-swift-tools-support-core_Sources_TSCBasic_WritableByteStream_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift-tools-support-core_Sources_TSCBasic_WritableByteStream_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,15 @@
++Upstreamed in swiftlang/swift-tools-support-core#522.
++Not required for 6.3.
++
++Index: swift-tools-support-core/Sources/TSCBasic/WritableByteStream.swift
++--- swift-tools-support-core/Sources/TSCBasic/WritableByteStream.swift.orig
+++++ swift-tools-support-core/Sources/TSCBasic/WritableByteStream.swift
++@@ -66,7 +66,7 @@ public extension WritableByteStream {
++ // Public alias to the old name to not introduce API compatibility.
++ public typealias OutputByteStream = WritableByteStream
++ 
++-#if os(Android)
+++#if os(Android) || os(OpenBSD)
++ public typealias FILEPointer = OpaquePointer
++ #else
++ public typealias FILEPointer = UnsafeMutablePointer<FILE>
+Index: lang/swift/patches/patch-swift_cmake_modules_AddPureSwift_cmake
+===================================================================
+RCS file: lang/swift/patches/patch-swift_cmake_modules_AddPureSwift_cmake
+diff -N lang/swift/patches/patch-swift_cmake_modules_AddPureSwift_cmake
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift_cmake_modules_AddPureSwift_cmake	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,33 @@
++Do not upstream.
++
++Index: swift/cmake/modules/AddPureSwift.cmake
++--- swift/cmake/modules/AddPureSwift.cmake.orig
+++++ swift/cmake/modules/AddPureSwift.cmake
++@@ -125,6 +125,14 @@ function(_set_pure_swift_link_flags name relpath_to_li
++         # NOTE: This relies on the ABI being the same as the builder.
++         "$ORIGIN/${relpath_to_lib_dir}swift/${SWIFT_SDK_${SWIFT_HOST_VARIANT_SDK}_LIB_SUBDIR}"
++     )
+++    if(NOT OPENBSD_BOOTSTRAP_RPATH) 
+++      set_property(TARGET ${name}
+++        APPEND PROPERTY INSTALL_RPATH
+++          "${CMAKE_INSTALL_PREFIX}/lib/swift/${SWIFT_SDK_${SWIFT_HOST_VARIANT_SDK}_LIB_SUBDIR}"
+++      )
+++    endif()
+++    set_property(TARGET ${name} PROPERTY INSTALL_RPATH_USE_LINK_PATH FALSE)
+++
++     # NOTE: At this point we don't have any pure swift executables/shared
++     # libraries required for building runtime/stdlib. So we don't need to add
++     # RPATH to the builder's runtime.
++@@ -430,6 +438,12 @@ function(add_pure_swift_host_tool name)
++     set_property(TARGET ${name}
++       APPEND PROPERTY INSTALL_RPATH
++         "$ORIGIN/../lib/swift/host")
+++    if(NOT OPENBSD_BOOTSTRAP_RPATH) 
+++      set_property(TARGET ${name}
+++        APPEND PROPERTY INSTALL_RPATH
+++          "${CMAKE_INSTALL_PREFIX}/lib/swift/host")
+++    endif()
+++    set_property(TARGET ${name} PROPERTY INSTALL_RPATH_USE_LINK_PATH FALSE)
++   endif()
++ 
++   set_property(TARGET ${name}
+Index: lang/swift/patches/patch-swift_cmake_modules_AddSwift_cmake
+===================================================================
+RCS file: lang/swift/patches/patch-swift_cmake_modules_AddSwift_cmake
+diff -N lang/swift/patches/patch-swift_cmake_modules_AddSwift_cmake
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift_cmake_modules_AddSwift_cmake	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,39 @@
++Do not upstream.
++
++Index: swift/cmake/modules/AddSwift.cmake
++--- swift/cmake/modules/AddSwift.cmake.orig
+++++ swift/cmake/modules/AddSwift.cmake
++@@ -630,6 +630,10 @@ function(_add_swift_runtime_link_flags target relpath_
++ 
++   set_property(TARGET ${target} PROPERTY BUILD_WITH_INSTALL_RPATH YES)
++   set_property(TARGET ${target} APPEND PROPERTY INSTALL_RPATH "${swift_runtime_rpath}")
+++  if(NOT OPENBSD_BOOTSTRAP_RPATH)
+++    set_property(TARGET ${target} APPEND PROPERTY INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib/swift/${SWIFT_SDK_${SWIFT_HOST_VARIANT_SDK}_LIB_SUBDIR}")
+++  endif()
+++  set_property(TARGET ${target} PROPERTY INSTALL_RPATH_USE_LINK_PATH FALSE)
++ endfunction()
++ 
++ # Add a new Swift host library.
++@@ -969,7 +973,7 @@ function(add_swift_host_tool executable)
++   endif()
++ 
++   # Opt-out of OpenBSD BTCFI if instructed where it is enforced by default.
++-  if(SWIFT_HOST_VARIANT_SDK STREQUAL "OPENBSD" AND SWIFT_HOST_VARIANT_ARCH STREQUAL "aarch64" AND NOT SWIFT_OPENBSD_BTCFI)
+++  if(SWIFT_HOST_VARIANT_SDK STREQUAL "OPENBSD" AND SWIFT_HOST_VARIANT_ARCH MATCHES "aarch64|x86_64" AND NOT SWIFT_OPENBSD_BTCFI)
++     target_link_options(${executable} PRIVATE "LINKER:-z,nobtcfi")
++   endif()
++ 
++@@ -991,6 +995,13 @@ function(add_swift_host_tool executable)
++         TARGET ${executable}
++         APPEND PROPERTY INSTALL_RPATH
++           "$ORIGIN/../${extra_relative_rpath}lib/swift/host/compiler")
+++      if(NOT OPENBSD_BOOTSTRAP_RPATH)
+++        set_property(
+++          TARGET ${executable}
+++          APPEND PROPERTY INSTALL_RPATH
+++            "${CMAKE_INSTALL_PREFIX}/lib/swift/host/compiler")
+++      endif()
+++      set_property(TARGET ${executable} PROPERTY INSTALL_RPATH_USE_LINK_PATH FALSE)
++     endif()
++   endif()
++ 
+Index: lang/swift/patches/patch-swift_cmake_modules_SwiftConfigureSDK_cmake
+===================================================================
+RCS file: lang/swift/patches/patch-swift_cmake_modules_SwiftConfigureSDK_cmake
+diff -N lang/swift/patches/patch-swift_cmake_modules_SwiftConfigureSDK_cmake
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift_cmake_modules_SwiftConfigureSDK_cmake	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,11 @@
++Index: swift/cmake/modules/SwiftConfigureSDK.cmake
++--- swift/cmake/modules/SwiftConfigureSDK.cmake.orig
+++++ swift/cmake/modules/SwiftConfigureSDK.cmake
++@@ -442,6 +442,7 @@ macro(configure_sdk_unix name architectures)
++         message(STATUS "OpenBSD Version: ${openbsd_system_version}")
++ 
++         set(SWIFT_SDK_OPENBSD_ARCH_${arch}_TRIPLE "${arch}-unknown-openbsd${openbsd_system_version}")
+++        set(SWIFT_SDK_OPENBSD_ARCH_${arch}_MODULE "${arch}-unknown-openbsd")
++ 
++         add_link_options("LINKER:-z,origin")
++ 
+Index: lang/swift/patches/patch-swift_lib_Basic_Platform_cpp
+===================================================================
+RCS file: lang/swift/patches/patch-swift_lib_Basic_Platform_cpp
+diff -N lang/swift/patches/patch-swift_lib_Basic_Platform_cpp
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift_lib_Basic_Platform_cpp	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,56 @@
++Do not upstream.
++
++Index: swift/lib/Basic/Platform.cpp
++--- swift/lib/Basic/Platform.cpp.orig
+++++ swift/lib/Basic/Platform.cpp
++@@ -150,7 +150,9 @@ bool swift::tripleRequiresRPathForSwiftLibrariesInOS(
++ }
++ 
++ bool swift::tripleBTCFIByDefaultInOpenBSD(const llvm::Triple &triple) {
++-  return triple.isOSOpenBSD() && triple.getArch() == llvm::Triple::aarch64;
+++  return triple.isOSOpenBSD() && (
+++    triple.getArch() == llvm::Triple::aarch64 || 
+++    triple.getArch() == llvm::Triple::x86_64) ;
++ }
++ 
++ DarwinPlatformKind swift::getDarwinPlatformKind(const llvm::Triple &triple) {
++@@ -434,31 +436,30 @@ llvm::Triple swift::getTargetSpecificModuleTriple(cons
++                         triple.getOSName(), environment);
++   }
++ 
++-  if (triple.isOSFreeBSD()) {
+++  if (triple.isOSFreeBSD() || triple.isOSOpenBSD()) {
++     return swift::getUnversionedTriple(triple);
++   }
++ 
++-  if (triple.isOSOpenBSD()) {
++-    StringRef arch = swift::getMajorArchitectureName(triple);
++-    return llvm::Triple(arch, triple.getVendorName(), triple.getOSName());
++-  }
++-
++   // Other platforms get no normalization.
++   return triple;
++ }
++ 
++ llvm::Triple swift::getUnversionedTriple(const llvm::Triple &triple) {
++   StringRef unversionedOSName = triple.getOSName().take_until(llvm::isDigit);
+++  StringRef arch = triple.getArchName();
+++  if (triple.isOSOpenBSD()) {
+++    arch = swift::getMajorArchitectureName(triple);
+++  }
+++
++   if (triple.getEnvironment()) {
++     StringRef environment =
++         llvm::Triple::getEnvironmentTypeName(triple.getEnvironment());
++ 
++-    return llvm::Triple(triple.getArchName(), triple.getVendorName(),
+++    return llvm::Triple(arch, triple.getVendorName(),
++                         unversionedOSName, environment);
++   }
++ 
++-  return llvm::Triple(triple.getArchName(), triple.getVendorName(),
++-                      unversionedOSName);
+++  return llvm::Triple(arch, triple.getVendorName(), unversionedOSName);
++ }
++ 
++ namespace {
+Index: lang/swift/patches/patch-swift_stdlib_public_Platform_Platform_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift_stdlib_public_Platform_Platform_swift
+diff -N lang/swift/patches/patch-swift_stdlib_public_Platform_Platform_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift_stdlib_public_Platform_Platform_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,19 @@
++Upstreamed in swiftlang/swift#84478.
++Not required for 6.3.
++
++Index: swift/stdlib/public/Platform/Platform.swift
++--- swift/stdlib/public/Platform/Platform.swift.orig
+++++ swift/stdlib/public/Platform/Platform.swift
++@@ -145,9 +145,9 @@ public func snprintf(ptr: UnsafeMutablePointer<Int8>, 
++ #endif
++ 
++ #elseif os(OpenBSD)
++-public var stdin: UnsafeMutablePointer<FILE> { return _swift_stdlib_stdin() }
++-public var stdout: UnsafeMutablePointer<FILE> { return _swift_stdlib_stdout() }
++-public var stderr: UnsafeMutablePointer<FILE> { return _swift_stdlib_stderr() }
+++public var stdin: OpaquePointer { return OpaquePointer(_swift_stdlib_stdin()) }
+++public var stdout: OpaquePointer { return OpaquePointer(_swift_stdlib_stdout()) }
+++public var stderr: OpaquePointer { return OpaquePointer(_swift_stdlib_stderr()) }
++ #elseif os(Windows)
++ public var stdin: UnsafeMutablePointer<FILE> { return __acrt_iob_func(0) }
++ public var stdout: UnsafeMutablePointer<FILE> { return __acrt_iob_func(1) }
+Index: lang/swift/patches/patch-swift_stdlib_public_SwiftShims_swift_shims_LibcOverlayShims_h
+===================================================================
+RCS file: lang/swift/patches/patch-swift_stdlib_public_SwiftShims_swift_shims_LibcOverlayShims_h
+diff -N lang/swift/patches/patch-swift_stdlib_public_SwiftShims_swift_shims_LibcOverlayShims_h
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift_stdlib_public_SwiftShims_swift_shims_LibcOverlayShims_h	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,25 @@
++Upstreamed in swiftlang/swift#84478.
++Not required for 6.3.
++
++Index: swift/stdlib/public/SwiftShims/swift/shims/LibcOverlayShims.h
++--- swift/stdlib/public/SwiftShims/swift/shims/LibcOverlayShims.h.orig
+++++ swift/stdlib/public/SwiftShims/swift/shims/LibcOverlayShims.h
++@@ -121,15 +121,15 @@ int static inline _swift_stdlib_openat(int fd, const c
++ #endif
++ 
++ #if defined(__OpenBSD__)
++-static inline FILE *_swift_stdlib_stdin(void) {
+++static inline void *_swift_stdlib_stdin(void) {
++   return stdin;
++ }
++ 
++-static inline FILE *_swift_stdlib_stdout(void) {
+++static inline void *_swift_stdlib_stdout(void) {
++   return stdout;
++ }
++ 
++-static inline FILE *_swift_stdlib_stderr(void) {
+++static inline void *_swift_stdlib_stderr(void) {
++   return stderr;
++ }
++ #endif
+Index: lang/swift/patches/patch-swift_stdlib_public_Synchronization_CMakeLists_txt
+===================================================================
+RCS file: lang/swift/patches/patch-swift_stdlib_public_Synchronization_CMakeLists_txt
+diff -N lang/swift/patches/patch-swift_stdlib_public_Synchronization_CMakeLists_txt
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift_stdlib_public_Synchronization_CMakeLists_txt	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,35 @@
++Index: swift/stdlib/public/Synchronization/CMakeLists.txt
++--- swift/stdlib/public/Synchronization/CMakeLists.txt.orig
+++++ swift/stdlib/public/Synchronization/CMakeLists.txt
++@@ -79,6 +79,13 @@ set(SWIFT_SYNCHRONIZATION_WINDOWS_SOURCES
++   Mutex/WindowsImpl.swift
++ )
++ 
+++# OpenBSD sources
+++
+++set(SWIFT_SYNCHRONIZATION_OPENBSD_SOURCES
+++  Mutex/Mutex.swift
+++  Mutex/OpenBSDImpl.swift
+++)
+++
++ set(SWIFT_SYNCHRNOIZATION_SWIFT_FLAGS
++   ${SWIFT_STANDARD_LIBRARY_SWIFT_FLAGS}
++   "-enable-builtin-module"
++@@ -112,6 +119,8 @@ add_swift_target_library(swiftSynchronization ${SWIFT_
++     ${SWIFT_SYNCHRONIZATION_WASM_SOURCES}
++   SWIFT_SOURCES_DEPENDS_WINDOWS
++     ${SWIFT_SYNCHRONIZATION_WINDOWS_SOURCES}
+++  SWIFT_SOURCES_DEPENDS_OPENBSD
+++    ${SWIFT_SYNCHRONIZATION_OPENBSD_SOURCES}
++   SWIFT_SOURCES_DEPENDS_FREESTANDING
++     Mutex/MutexUnavailable.swift
++ 
++@@ -135,6 +144,8 @@ add_swift_target_library(swiftSynchronization ${SWIFT_
++     Android
++   SWIFT_MODULE_DEPENDS_WINDOWS
++     WinSDK
+++  SWIFT_MODULE_DEPENDS_OPENBSD
+++    Glibc
++ 
++   SWIFT_COMPILE_FLAGS
++     ${SWIFT_SYNCHRNOIZATION_SWIFT_FLAGS}
+Index: lang/swift/patches/patch-swift_stdlib_public_Synchronization_Mutex_OpenBSDImpl_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swift_stdlib_public_Synchronization_Mutex_OpenBSDImpl_swift
+diff -N lang/swift/patches/patch-swift_stdlib_public_Synchronization_Mutex_OpenBSDImpl_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift_stdlib_public_Synchronization_Mutex_OpenBSDImpl_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,86 @@
++Index: swift/stdlib/public/Synchronization/Mutex/OpenBSDImpl.swift
++--- swift/stdlib/public/Synchronization/Mutex/OpenBSDImpl.swift.orig
+++++ swift/stdlib/public/Synchronization/Mutex/OpenBSDImpl.swift
++@@ -0,0 +1,82 @@
+++//===----------------------------------------------------------------------===//
+++//
+++// This source file is part of the Swift Atomics open source project
+++//
+++// Copyright (c) 2024 Apple Inc. and the Swift project authors
+++// Licensed under Apache License v2.0 with Runtime Library Exception
+++//
+++// See https://swift.org/LICENSE.txt for license information
+++// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+++//
+++//===----------------------------------------------------------------------===//
+++
+++import Glibc
+++
+++@usableFromInline
+++@_transparent
+++func errstr(_ no: Int32) -> String {
+++  unsafe withUnsafeTemporaryAllocation(of: CChar.self, capacity: Int(NL_TEXTMAX)) { buf in
+++    unsafe strerror_r(no, buf.baseAddress!, buf.count)
+++    return unsafe String(validatingCString: buf.baseAddress!)
+++      ?? "An unknown error occurred (\(no))."
+++  }
+++}
+++
+++@available(SwiftStdlib 6.0, *)
+++@frozen
+++@_staticExclusiveOnly
+++@safe
+++public struct _MutexHandle: ~Copyable {
+++  @usableFromInline
+++  @safe
+++  let value: _Cell<pthread_mutex_t?>
+++
+++  @available(SwiftStdlib 6.0, *)
+++  @_alwaysEmitIntoClient
+++  @_transparent
+++  public init() {
+++    var mx = unsafe pthread_mutex_t(bitPattern: 0)
+++    let r = unsafe pthread_mutex_init(&mx, nil)
+++    if r != 0 {
+++      fatalError("couldn't initialize mutex: \(errstr(errno))")
+++    }
+++    value = unsafe _Cell(mx)
+++  }
+++
+++  @available(SwiftStdlib 6.0, *)
+++  @_alwaysEmitIntoClient
+++  @_transparent
+++  internal borrowing func _lock() {
+++    let r = unsafe pthread_mutex_lock(value._address)
+++    if r != 0 {
+++      fatalError("couldn't lock mutex: \(errstr(errno))")
+++    }
+++  }
+++
+++  @available(SwiftStdlib 6.0, *)
+++  @_alwaysEmitIntoClient
+++  @_transparent
+++  internal borrowing func _tryLock() -> Bool {
+++    unsafe pthread_mutex_trylock(value._address) == 0
+++  }
+++
+++  @available(SwiftStdlib 6.0, *)
+++  @_alwaysEmitIntoClient
+++  @_transparent
+++  internal borrowing func _unlock() {
+++    let r = unsafe pthread_mutex_unlock(value._address)
+++    if r != 0 {
+++      fatalError("couldn't unlock mutex: \(errstr(errno))")
+++    }
+++  }
+++
+++  @available(SwiftStdlib 6.0, *)
+++  @_alwaysEmitIntoClient
+++  @_transparent
+++  deinit {
+++    let r = unsafe pthread_mutex_destroy(value._address)
+++    if r != 0 {
+++      fatalError("couldn't destroy mutex: \(errstr(errno))")
+++    }
+++  }
+++}
+Index: lang/swift/patches/patch-swift_utils_build-presets_ini
+===================================================================
+RCS file: lang/swift/patches/patch-swift_utils_build-presets_ini
+diff -N lang/swift/patches/patch-swift_utils_build-presets_ini
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift_utils_build-presets_ini	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,38 @@
++Index: swift/utils/build-presets.ini
++--- swift/utils/build-presets.ini.orig
+++++ swift/utils/build-presets.ini
++@@ -3257,3 +3257,34 @@ install-swiftpm
++ install-swift-testing
++ install-swift-testing-macros
++ install-xctest
+++
+++[preset: bootstrap_stage0_openbsd]
+++mixin-preset=bootstrap_stage0
+++native-clang-tools-path=/usr/bin
+++install-llvm=0
+++install-prefix=/usr/local
+++extra-cmake-options=
+++  -DLLVM_TARGETS_TO_BUILD=AArch64;X86
+++  -DCMAKE_Swift_NUM_THREADS=1
+++  -DBRIDGING_MODE=PURE
+++
+++[preset: bootstrap_stage1_openbsd]
+++mixin-preset=bootstrap_stage1
+++native-clang-tools-path=/usr/bin
+++install-llvm=0
+++install-prefix=/usr/local
+++extra-cmake-options=
+++  -DLLVM_TARGETS_TO_BUILD=AArch64;X86
+++  -DCMAKE_Swift_NUM_THREADS=1
+++  -DBRIDGING_MODE=PURE
+++
+++[preset: bootstrap_stage2_openbsd]
+++mixin-preset=bootstrap_stage2
+++native-clang-tools-path=/usr/bin
+++install-llvm=0
+++install-prefix=/usr/local
+++swift-install-components=autolink-driver;compiler;stdlib;sdk-overlay;toolchain-tools;license
+++extra-cmake-options=
+++  -DLLVM_TARGETS_TO_BUILD=AArch64;X86
+++  -DCMAKE_Swift_NUM_THREADS=1
+++  -DBRIDGING_MODE=PURE
+Index: lang/swift/patches/patch-swift_utils_build-script-impl
+===================================================================
+RCS file: lang/swift/patches/patch-swift_utils_build-script-impl
+diff -N lang/swift/patches/patch-swift_utils_build-script-impl
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift_utils_build-script-impl	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,15 @@
++Upstreamed in swiftlang/swift#85714.
++Not required for 6.3.
++
++Index: swift/utils/build-script-impl
++--- swift/utils/build-script-impl.orig
+++++ swift/utils/build-script-impl
++@@ -3201,7 +3201,7 @@ function build_and_test_installable_package() {
++               call tar -c -z -f "${package_for_host}" "${TOOLCHAIN_PREFIX/#\/}"
++         else
++             # BSD tar doesn't support --owner/--group.
++-            if [[ "$(uname -s)" == "Darwin" || "$(uname -s)" == "FreeBSD" ]] ; then
+++            if [[ "$(uname -s)" == "Darwin" || "$(uname -s)" == "FreeBSD" || "$(uname -s)" == "OpenBSD" ]] ; then
++                 with_pushd "${host_install_destdir}" \
++                     tar -c -z -f "${package_for_host}" "${host_install_prefix/#\/}"
++             else
+Index: lang/swift/patches/patch-swift_utils_swift_build_support_swift_build_support_cmake_py
+===================================================================
+RCS file: lang/swift/patches/patch-swift_utils_swift_build_support_swift_build_support_cmake_py
+diff -N lang/swift/patches/patch-swift_utils_swift_build_support_swift_build_support_cmake_py
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift_utils_swift_build_support_swift_build_support_cmake_py	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,26 @@
++Upstreamed in swiftlang/swift#81587.
++Not required for 6.3.
++
++Index: swift/utils/swift_build_support/swift_build_support/cmake.py
++--- swift/utils/swift_build_support/swift_build_support/cmake.py.orig
+++++ swift/utils/swift_build_support/swift_build_support/cmake.py
++@@ -150,13 +150,15 @@ class CMake(object):
++             define("CMAKE_CXX_COMPILER_LAUNCHER:PATH", args.cmake_cxx_launcher)
++ 
++         if self.prefer_native_toolchain and product:
+++            clang_tools_path = product.native_clang_tools_path(args.host_target)
+++            define("CMAKE_C_COMPILER:PATH", os.path.join(clang_tools_path,
+++                                                         'bin', 'clang'))
+++            define("CMAKE_CXX_COMPILER:PATH", os.path.join(clang_tools_path,
+++                                                           'bin', 'clang++'))
+++
++             toolchain_path = product.native_toolchain_path(args.host_target)
++             cmake_swiftc_path = os.getenv('CMAKE_Swift_COMPILER',
++                                           os.path.join(toolchain_path, 'bin', 'swiftc'))
++-            define("CMAKE_C_COMPILER:PATH", os.path.join(toolchain_path,
++-                                                         'bin', 'clang'))
++-            define("CMAKE_CXX_COMPILER:PATH", os.path.join(toolchain_path,
++-                                                           'bin', 'clang++'))
++             define("CMAKE_Swift_COMPILER:PATH", cmake_swiftc_path)
++         else:
++             cmake_swiftc_path = os.getenv('CMAKE_Swift_COMPILER', toolchain.swiftc)
+Index: lang/swift/patches/patch-swift_utils_swift_build_support_swift_build_support_products_product_py
+===================================================================
+RCS file: lang/swift/patches/patch-swift_utils_swift_build_support_swift_build_support_products_product_py
+diff -N lang/swift/patches/patch-swift_utils_swift_build_support_swift_build_support_products_product_py
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift_utils_swift_build_support_swift_build_support_products_product_py	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,19 @@
++Upstreamed in swiftlang/swift#81587.
++Not required for 6.3.
++
++Index: swift/utils/swift_build_support/swift_build_support/products/product.py
++--- swift/utils/swift_build_support/swift_build_support/products/product.py.orig
+++++ swift/utils/swift_build_support/swift_build_support/products/product.py
++@@ -217,6 +217,12 @@ class Product(object):
++         return targets.toolchain_path(install_destdir,
++                                       self.args.install_prefix)
++ 
+++    def native_clang_tools_path(self, host_target):
+++        if self.args.native_clang_tools_path is not None:
+++            return os.path.split(self.args.native_clang_tools_path)[0]
+++        else:
+++            return self.install_toolchain_path(host_target)
+++
++     def native_toolchain_path(self, host_target):
++         if self.args.native_swift_tools_path is not None:
++             return os.path.split(self.args.native_swift_tools_path)[0]
+Index: lang/swift/patches/patch-swift_utils_swift_build_support_swift_build_support_products_swiftpm_py
+===================================================================
+RCS file: lang/swift/patches/patch-swift_utils_swift_build_support_swift_build_support_products_swiftpm_py
+diff -N lang/swift/patches/patch-swift_utils_swift_build_support_swift_build_support_products_swiftpm_py
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swift_utils_swift_build_support_swift_build_support_products_swiftpm_py	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,17 @@
++Upstreamed in swiftlang/swift#81587.
++Not required for 6.3.
++
++Index: swift/utils/swift_build_support/swift_build_support/products/swiftpm.py
++--- swift/utils/swift_build_support/swift_build_support/products/swiftpm.py.orig
+++++ swift/utils/swift_build_support/swift_build_support/products/swiftpm.py
++@@ -54,8 +54,9 @@ class SwiftPM(product.Product):
++             self.source_dir, 'Utilities', 'bootstrap')
++ 
++         toolchain_path = self.native_toolchain_path(host_target)
+++        clang_tools_path = self.native_clang_tools_path(host_target)
++         swiftc = os.path.join(toolchain_path, "bin", "swiftc")
++-        clang = os.path.join(toolchain_path, "bin", "clang")
+++        clang = os.path.join(clang_tools_path, "bin", "clang")
++ 
++         # FIXME: We require llbuild build directory in order to build. Is
++         # there a better way to get this?
+Index: lang/swift/patches/patch-swiftpm_Package_swift
+===================================================================
+RCS file: lang/swift/patches/patch-swiftpm_Package_swift
+diff -N lang/swift/patches/patch-swiftpm_Package_swift
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/patches/patch-swiftpm_Package_swift	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,14 @@
++Do not upstream.
++
++Index: swiftpm/Package.swift
++--- swiftpm/Package.swift.orig
+++++ swiftpm/Package.swift
++@@ -23,7 +23,7 @@ if let resourceDirPath = ProcessInfo.processInfo.envir
++     swiftpmLinkSettings = [.unsafeFlags([
++         "-no-toolchain-stdlib-rpath",
++         "-Xlinker", "-rpath",
++-        "-Xlinker", "$ORIGIN/../lib/swift/\(resourceDirPath)",
+++        "-Xlinker", "$ORIGIN/../lib/swift/\(resourceDirPath):/usr/local/lib/swift/\(resourceDirPath)",
++     ])]
++     packageLibraryLinkSettings = [.unsafeFlags([
++         "-no-toolchain-stdlib-rpath",
+Index: lang/swift/pkg/DESCR-docc
+===================================================================
+RCS file: lang/swift/pkg/DESCR-docc
+diff -N lang/swift/pkg/DESCR-docc
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/DESCR-docc	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,2 @@
++Swift-DocC is a documentation compiler for Swift frameworks and packages
++aimed at making it easy to write and publish great developer documentation.
+Index: lang/swift/pkg/DESCR-format
+===================================================================
+RCS file: lang/swift/pkg/DESCR-format
+diff -N lang/swift/pkg/DESCR-format
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/DESCR-format	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,2 @@
++swift-format provides the formatting technology for SourceKit-LSP and the
++building blocks for doing code formatting transformations.
+Index: lang/swift/pkg/DESCR-foundation
+===================================================================
+RCS file: lang/swift/pkg/DESCR-foundation
+diff -N lang/swift/pkg/DESCR-foundation
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/DESCR-foundation	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,4 @@
++Foundation provides a base layer of functionality useful in many
++applications, including fundamental types for numbers, data,
++collections, and dates, as well as functions for task management, file
++system access, and more.
+Index: lang/swift/pkg/DESCR-libdispatch
+===================================================================
+RCS file: lang/swift/pkg/DESCR-libdispatch
+diff -N lang/swift/pkg/DESCR-libdispatch
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/DESCR-libdispatch	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,2 @@
++Grand Central Dispatch (GCD or libdispatch) provides comprehensive
++support for concurrent code execution on multicore hardware.
+Index: lang/swift/pkg/DESCR-lsp
+===================================================================
+RCS file: lang/swift/pkg/DESCR-lsp
+diff -N lang/swift/pkg/DESCR-lsp
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/DESCR-lsp	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,8 @@
++SourceKit-LSP is an implementation of the Language Server Protocol (LSP)
++for Swift and C-based languages. It provides intelligent editor
++functionality like code-completion and jump-to-definition to editors
++that support LSP. SourceKit-LSP is built on top of sourcekitd and clangd
++for high-fidelity language support, and provides a powerful source code
++index as well as cross-language support. SourceKit-LSP supports projects
++that use the Swift Package Manager and projects that generate a
++compile_commands.json file, such as CMake.
+Index: lang/swift/pkg/DESCR-main
+===================================================================
+RCS file: lang/swift/pkg/DESCR-main
+diff -N lang/swift/pkg/DESCR-main
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/DESCR-main	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,12 @@
++Swift is a high-performance system programming language. It has a clean
++and modern syntax, offers seamless access to existing C and Objective-C
++code and frameworks, and is memory-safe by default.
++
++Although inspired by Objective-C and many other languages, Swift is not
++itself a C-derived language. As a complete and independent language,
++Swift packages core features like flow control, data structures, and
++functions, with high-level constructs like objects, protocols, closures,
++and generics. Swift embraces modules, eliminating the need for headers
++and the code duplication they entail.
++
++To learn more about using the language, visit swift.org.
+Index: lang/swift/pkg/DESCR-stdlib
+===================================================================
+RCS file: lang/swift/pkg/DESCR-stdlib
+diff -N lang/swift/pkg/DESCR-stdlib
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/DESCR-stdlib	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,2 @@
++The Swift standard library defines a base layer of functionality for
++writing Swift programs.
+Index: lang/swift/pkg/DESCR-swiftpm
+===================================================================
+RCS file: lang/swift/pkg/DESCR-swiftpm
+diff -N lang/swift/pkg/DESCR-swiftpm
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/DESCR-swiftpm	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,5 @@
++The Swift Package Manager is a tool for managing distribution of source
++code, aimed at making it easy to share your code and reuse others' code.
++The tool directly addresses the challenges of compiling and linking
++Swift packages, managing dependencies, versioning, and supporting
++flexible distribution and collaboration models.
+Index: lang/swift/pkg/DESCR-testing
+===================================================================
+RCS file: lang/swift/pkg/DESCR-testing
+diff -N lang/swift/pkg/DESCR-testing
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/DESCR-testing	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,2 @@
++Swift Testing is a package with expressive and intuitive APIs that make
++testing your Swift code a breeze.
+Index: lang/swift/pkg/DESCR-xctest
+===================================================================
+RCS file: lang/swift/pkg/DESCR-xctest
+diff -N lang/swift/pkg/DESCR-xctest
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/DESCR-xctest	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,2 @@
++The XCTest library is designed to provide a common framework for writing
++unit tests in Swift, for Swift packages and applications.
+Index: lang/swift/pkg/PLIST-docc
+===================================================================
+RCS file: lang/swift/pkg/PLIST-docc
+diff -N lang/swift/pkg/PLIST-docc
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/PLIST-docc	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,53 @@
++@bin bin/docc
++share/docc/
++share/docc/features.json
++share/docc/render/
++share/docc/render/css/
++share/docc/render/css/39.cc2d61d1.css
++share/docc/render/css/989.4f123103.css
++share/docc/render/css/documentation-topic.b031fba4.css
++share/docc/render/css/index.d0b63544.css
++share/docc/render/css/topic.59e2bdb7.css
++share/docc/render/css/tutorials-overview.9c2b2457.css
++share/docc/render/developer-og-twitter.jpg
++share/docc/render/developer-og.jpg
++share/docc/render/favicon.ico
++share/docc/render/favicon.svg
++share/docc/render/img/
++share/docc/render/img/added-icon.832a5d2c.svg
++share/docc/render/img/deprecated-icon.7bf1740a.svg
++share/docc/render/img/modified-icon.efb2697d.svg
++share/docc/render/index-template.html
++share/docc/render/index.html
++share/docc/render/js/
++share/docc/render/js/104.13ecc36d.js
++share/docc/render/js/337.274a8ccc.js
++share/docc/render/js/39.06467a79.js
++share/docc/render/js/842.f7cedc65.js
++share/docc/render/js/chunk-vendors.bdb7cbba.js
++share/docc/render/js/documentation-topic.048469da.js
++share/docc/render/js/highlight-js-bash-js.702f0c5c.js
++share/docc/render/js/highlight-js-c-js.063069d3.js
++share/docc/render/js/highlight-js-cpp-js.458a9ae4.js
++share/docc/render/js/highlight-js-css-js.bfc4251f.js
++share/docc/render/js/highlight-js-custom-markdown.78c9f6ed.js
++share/docc/render/js/highlight-js-custom-swift.738731d1.js
++share/docc/render/js/highlight-js-diff-js.4db9a783.js
++share/docc/render/js/highlight-js-http-js.f78e83c2.js
++share/docc/render/js/highlight-js-java-js.4fe21e94.js
++share/docc/render/js/highlight-js-javascript-js.dfc9d16d.js
++share/docc/render/js/highlight-js-json-js.2a1856ba.js
++share/docc/render/js/highlight-js-llvm-js.26121771.js
++share/docc/render/js/highlight-js-markdown-js.a2f456af.js
++share/docc/render/js/highlight-js-objectivec-js.74dea052.js
++share/docc/render/js/highlight-js-perl-js.da6eda82.js
++share/docc/render/js/highlight-js-php-js.c458ffa4.js
++share/docc/render/js/highlight-js-python-js.60354774.js
++share/docc/render/js/highlight-js-ruby-js.7272231f.js
++share/docc/render/js/highlight-js-scss-js.adcd11a2.js
++share/docc/render/js/highlight-js-shell-js.0ad5b20f.js
++share/docc/render/js/highlight-js-swift-js.bdd5bff5.js
++share/docc/render/js/highlight-js-xml-js.0d78f903.js
++share/docc/render/js/index.6737d5f6.js
++share/docc/render/js/topic.c7f55345.js
++share/docc/render/js/tutorials-overview.9144a669.js
+Index: lang/swift/pkg/PLIST-format
+===================================================================
+RCS file: lang/swift/pkg/PLIST-format
+diff -N lang/swift/pkg/PLIST-format
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/PLIST-format	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1 @@
++@bin bin/swift-format
+Index: lang/swift/pkg/PLIST-foundation
+===================================================================
+RCS file: lang/swift/pkg/PLIST-foundation
+diff -N lang/swift/pkg/PLIST-foundation
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/PLIST-foundation	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,667 @@
++@bin bin/plutil
++lib/swift/CoreFoundation/
++lib/swift/CoreFoundation/CFArray.h
++lib/swift/CoreFoundation/CFAttributedString.h
++lib/swift/CoreFoundation/CFAttributedStringPriv.h
++lib/swift/CoreFoundation/CFAvailability.h
++lib/swift/CoreFoundation/CFBag.h
++lib/swift/CoreFoundation/CFBase.h
++lib/swift/CoreFoundation/CFBigNumber.h
++lib/swift/CoreFoundation/CFBinaryHeap.h
++lib/swift/CoreFoundation/CFBitVector.h
++lib/swift/CoreFoundation/CFBundle.h
++lib/swift/CoreFoundation/CFBundlePriv.h
++lib/swift/CoreFoundation/CFBundle_BinaryTypes.h
++lib/swift/CoreFoundation/CFBurstTrie.h
++lib/swift/CoreFoundation/CFByteOrder.h
++lib/swift/CoreFoundation/CFCalendar.h
++lib/swift/CoreFoundation/CFCalendarPriv.h
++lib/swift/CoreFoundation/CFCharacterSet.h
++lib/swift/CoreFoundation/CFCharacterSetPriv.h
++lib/swift/CoreFoundation/CFConstantKeys.h
++lib/swift/CoreFoundation/CFData.h
++lib/swift/CoreFoundation/CFDate.h
++lib/swift/CoreFoundation/CFDateComponents.h
++lib/swift/CoreFoundation/CFDateFormatter.h
++lib/swift/CoreFoundation/CFDateFormatter_Private.h
++lib/swift/CoreFoundation/CFDateInterval.h
++lib/swift/CoreFoundation/CFDateIntervalFormatter.h
++lib/swift/CoreFoundation/CFDictionary.h
++lib/swift/CoreFoundation/CFError.h
++lib/swift/CoreFoundation/CFError_Private.h
++lib/swift/CoreFoundation/CFKnownLocations.h
++lib/swift/CoreFoundation/CFListFormatter.h
++lib/swift/CoreFoundation/CFLocale.h
++lib/swift/CoreFoundation/CFLocale_Private.h
++lib/swift/CoreFoundation/CFLocking.h
++lib/swift/CoreFoundation/CFLogUtilities.h
++lib/swift/CoreFoundation/CFMachPort.h
++lib/swift/CoreFoundation/CFMessagePort.h
++lib/swift/CoreFoundation/CFNotificationCenter.h
++lib/swift/CoreFoundation/CFNumber.h
++lib/swift/CoreFoundation/CFNumberFormatter.h
++lib/swift/CoreFoundation/CFNumber_Private.h
++lib/swift/CoreFoundation/CFOverflow.h
++lib/swift/CoreFoundation/CFPlugIn.h
++lib/swift/CoreFoundation/CFPlugInCOM.h
++lib/swift/CoreFoundation/CFPreferences.h
++lib/swift/CoreFoundation/CFPriv.h
++lib/swift/CoreFoundation/CFPropertyList.h
++lib/swift/CoreFoundation/CFPropertyList_Private.h
++lib/swift/CoreFoundation/CFRegularExpression.h
++lib/swift/CoreFoundation/CFRelativeDateTimeFormatter.h
++lib/swift/CoreFoundation/CFRunArray.h
++lib/swift/CoreFoundation/CFRunLoop.h
++lib/swift/CoreFoundation/CFRuntime.h
++lib/swift/CoreFoundation/CFSet.h
++lib/swift/CoreFoundation/CFSocket.h
++lib/swift/CoreFoundation/CFStorage.h
++lib/swift/CoreFoundation/CFStream.h
++lib/swift/CoreFoundation/CFStreamAbstract.h
++lib/swift/CoreFoundation/CFStreamPriv.h
++lib/swift/CoreFoundation/CFString.h
++lib/swift/CoreFoundation/CFStringDefaultEncoding.h
++lib/swift/CoreFoundation/CFStringEncodingConverter.h
++lib/swift/CoreFoundation/CFStringEncodingConverterExt.h
++lib/swift/CoreFoundation/CFStringEncodingConverterPriv.h
++lib/swift/CoreFoundation/CFStringEncodingDatabase.h
++lib/swift/CoreFoundation/CFStringEncodingExt.h
++lib/swift/CoreFoundation/CFString_Private.h
++lib/swift/CoreFoundation/CFTargetConditionals.h
++lib/swift/CoreFoundation/CFTimeZone.h
++lib/swift/CoreFoundation/CFTree.h
++lib/swift/CoreFoundation/CFURL.h
++lib/swift/CoreFoundation/CFURLAccess.h
++lib/swift/CoreFoundation/CFURLComponents.h
++lib/swift/CoreFoundation/CFURLPriv.h
++lib/swift/CoreFoundation/CFUUID.h
++lib/swift/CoreFoundation/CFUniChar.h
++lib/swift/CoreFoundation/CFUnicodeDecomposition.h
++lib/swift/CoreFoundation/CFUnicodePrecomposition.h
++lib/swift/CoreFoundation/CFUserNotification.h
++lib/swift/CoreFoundation/CFUtilities.h
++lib/swift/CoreFoundation/CoreFoundation.h
++lib/swift/CoreFoundation/ForFoundationOnly.h
++lib/swift/CoreFoundation/ForSwiftFoundationOnly.h
++lib/swift/CoreFoundation/module.modulemap
++lib/swift/CoreFoundation/static-module.map
++lib/swift/_FoundationCShims/
++lib/swift/_FoundationCShims/CFUniCharBitmapData.h
++lib/swift/_FoundationCShims/CFUniCharBitmapData.inc.h
++lib/swift/_FoundationCShims/_CShimsMacros.h
++lib/swift/_FoundationCShims/_CShimsTargetConditionals.h
++lib/swift/_FoundationCShims/_CStdlib.h
++lib/swift/_FoundationCShims/_FoundationCShims.h
++lib/swift/_FoundationCShims/bplist_shims.h
++lib/swift/_FoundationCShims/filemanager_shims.h
++lib/swift/_FoundationCShims/io_shims.h
++lib/swift/_FoundationCShims/module.modulemap
++lib/swift/_FoundationCShims/platform_shims.h
++lib/swift/_FoundationCShims/string_shims.h
++lib/swift/_FoundationCShims/uuid.h
++lib/swift/_foundation_unicode/
++lib/swift/_foundation_unicode/alphaindex.h
++lib/swift/_foundation_unicode/appendable.h
++lib/swift/_foundation_unicode/basictz.h
++lib/swift/_foundation_unicode/brkiter.h
++lib/swift/_foundation_unicode/bytestream.h
++lib/swift/_foundation_unicode/bytestrie.h
++lib/swift/_foundation_unicode/bytestriebuilder.h
++lib/swift/_foundation_unicode/calendar.h
++lib/swift/_foundation_unicode/caniter.h
++lib/swift/_foundation_unicode/casemap.h
++lib/swift/_foundation_unicode/char16ptr.h
++lib/swift/_foundation_unicode/chariter.h
++lib/swift/_foundation_unicode/choicfmt.h
++lib/swift/_foundation_unicode/coleitr.h
++lib/swift/_foundation_unicode/coll.h
++lib/swift/_foundation_unicode/compactdecimalformat.h
++lib/swift/_foundation_unicode/curramt.h
++lib/swift/_foundation_unicode/currpinf.h
++lib/swift/_foundation_unicode/currunit.h
++lib/swift/_foundation_unicode/datefmt.h
++lib/swift/_foundation_unicode/dbbi.h
++lib/swift/_foundation_unicode/dcfmtsym.h
++lib/swift/_foundation_unicode/decimfmt.h
++lib/swift/_foundation_unicode/displayoptions.h
++lib/swift/_foundation_unicode/docmain.h
++lib/swift/_foundation_unicode/dtfmtsym.h
++lib/swift/_foundation_unicode/dtintrv.h
++lib/swift/_foundation_unicode/dtitvfmt.h
++lib/swift/_foundation_unicode/dtitvinf.h
++lib/swift/_foundation_unicode/dtptngen.h
++lib/swift/_foundation_unicode/dtrule.h
++lib/swift/_foundation_unicode/edits.h
++lib/swift/_foundation_unicode/enumset.h
++lib/swift/_foundation_unicode/errorcode.h
++lib/swift/_foundation_unicode/fieldpos.h
++lib/swift/_foundation_unicode/filteredbrk.h
++lib/swift/_foundation_unicode/fmtable.h
++lib/swift/_foundation_unicode/format.h
++lib/swift/_foundation_unicode/formattednumber.h
++lib/swift/_foundation_unicode/formattedvalue.h
++lib/swift/_foundation_unicode/fpositer.h
++lib/swift/_foundation_unicode/gender.h
++lib/swift/_foundation_unicode/gregocal.h
++lib/swift/_foundation_unicode/icudataver.h
++lib/swift/_foundation_unicode/icuplug.h
++lib/swift/_foundation_unicode/idna.h
++lib/swift/_foundation_unicode/listformatter.h
++lib/swift/_foundation_unicode/localebuilder.h
++lib/swift/_foundation_unicode/localematcher.h
++lib/swift/_foundation_unicode/localpointer.h
++lib/swift/_foundation_unicode/locdspnm.h
++lib/swift/_foundation_unicode/locid.h
++lib/swift/_foundation_unicode/measfmt.h
++lib/swift/_foundation_unicode/measunit.h
++lib/swift/_foundation_unicode/measure.h
++lib/swift/_foundation_unicode/messagepattern.h
++lib/swift/_foundation_unicode/module.modulemap
++lib/swift/_foundation_unicode/msgfmt.h
++lib/swift/_foundation_unicode/normalizer2.h
++lib/swift/_foundation_unicode/normlzr.h
++lib/swift/_foundation_unicode/nounit.h
++lib/swift/_foundation_unicode/numberformatter.h
++lib/swift/_foundation_unicode/numberrangeformatter.h
++lib/swift/_foundation_unicode/numfmt.h
++lib/swift/_foundation_unicode/numsys.h
++lib/swift/_foundation_unicode/parseerr.h
++lib/swift/_foundation_unicode/parsepos.h
++lib/swift/_foundation_unicode/platform.h
++lib/swift/_foundation_unicode/plurfmt.h
++lib/swift/_foundation_unicode/plurrule.h
++lib/swift/_foundation_unicode/ptypes.h
++lib/swift/_foundation_unicode/putil.h
++lib/swift/_foundation_unicode/rbbi.h
++lib/swift/_foundation_unicode/rbnf.h
++lib/swift/_foundation_unicode/rbtz.h
++lib/swift/_foundation_unicode/regex.h
++lib/swift/_foundation_unicode/region.h
++lib/swift/_foundation_unicode/reldatefmt.h
++lib/swift/_foundation_unicode/rep.h
++lib/swift/_foundation_unicode/resbund.h
++lib/swift/_foundation_unicode/schriter.h
++lib/swift/_foundation_unicode/scientificnumberformatter.h
++lib/swift/_foundation_unicode/search.h
++lib/swift/_foundation_unicode/selfmt.h
++lib/swift/_foundation_unicode/simpleformatter.h
++lib/swift/_foundation_unicode/simplenumberformatter.h
++lib/swift/_foundation_unicode/simpletz.h
++lib/swift/_foundation_unicode/smpdtfmt.h
++lib/swift/_foundation_unicode/sortkey.h
++lib/swift/_foundation_unicode/std_string.h
++lib/swift/_foundation_unicode/strenum.h
++lib/swift/_foundation_unicode/stringoptions.h
++lib/swift/_foundation_unicode/stringpiece.h
++lib/swift/_foundation_unicode/stringtriebuilder.h
++lib/swift/_foundation_unicode/stsearch.h
++lib/swift/_foundation_unicode/symtable.h
++lib/swift/_foundation_unicode/tblcoll.h
++lib/swift/_foundation_unicode/timezone.h
++lib/swift/_foundation_unicode/tmunit.h
++lib/swift/_foundation_unicode/tmutamt.h
++lib/swift/_foundation_unicode/tmutfmt.h
++lib/swift/_foundation_unicode/translit.h
++lib/swift/_foundation_unicode/tzfmt.h
++lib/swift/_foundation_unicode/tznames.h
++lib/swift/_foundation_unicode/tzrule.h
++lib/swift/_foundation_unicode/tztrans.h
++lib/swift/_foundation_unicode/ualoc.h
++lib/swift/_foundation_unicode/uameasureformat.h
++lib/swift/_foundation_unicode/uameasureunit.h
++lib/swift/_foundation_unicode/uatimeunitformat.h
++lib/swift/_foundation_unicode/ubidi.h
++lib/swift/_foundation_unicode/ubiditransform.h
++lib/swift/_foundation_unicode/ubrk.h
++lib/swift/_foundation_unicode/ucal.h
++lib/swift/_foundation_unicode/ucasemap.h
++lib/swift/_foundation_unicode/ucat.h
++lib/swift/_foundation_unicode/uchar.h
++lib/swift/_foundation_unicode/ucharstrie.h
++lib/swift/_foundation_unicode/ucharstriebuilder.h
++lib/swift/_foundation_unicode/uchriter.h
++lib/swift/_foundation_unicode/uclean.h
++lib/swift/_foundation_unicode/ucnv.h
++lib/swift/_foundation_unicode/ucnv_cb.h
++lib/swift/_foundation_unicode/ucnv_err.h
++lib/swift/_foundation_unicode/ucnvsel.h
++lib/swift/_foundation_unicode/ucol.h
++lib/swift/_foundation_unicode/ucoleitr.h
++lib/swift/_foundation_unicode/uconfig.h
++lib/swift/_foundation_unicode/ucpmap.h
++lib/swift/_foundation_unicode/ucptrie.h
++lib/swift/_foundation_unicode/ucsdet.h
++lib/swift/_foundation_unicode/ucurr.h
++lib/swift/_foundation_unicode/udat.h
++lib/swift/_foundation_unicode/udata.h
++lib/swift/_foundation_unicode/udateintervalformat.h
++lib/swift/_foundation_unicode/udatintv.h
++lib/swift/_foundation_unicode/udatpg.h
++lib/swift/_foundation_unicode/udisplaycontext.h
++lib/swift/_foundation_unicode/udisplayoptions.h
++lib/swift/_foundation_unicode/uenum.h
++lib/swift/_foundation_unicode/ufieldpositer.h
++lib/swift/_foundation_unicode/uformattable.h
++lib/swift/_foundation_unicode/uformattednumber.h
++lib/swift/_foundation_unicode/uformattedvalue.h
++lib/swift/_foundation_unicode/ugender.h
++lib/swift/_foundation_unicode/uidna.h
++lib/swift/_foundation_unicode/uiter.h
++lib/swift/_foundation_unicode/uldnames.h
++lib/swift/_foundation_unicode/ulistformatter.h
++lib/swift/_foundation_unicode/uloc.h
++lib/swift/_foundation_unicode/ulocale.h
++lib/swift/_foundation_unicode/ulocbuilder.h
++lib/swift/_foundation_unicode/ulocdata.h
++lib/swift/_foundation_unicode/umachine.h
++lib/swift/_foundation_unicode/umisc.h
++lib/swift/_foundation_unicode/umsg.h
++lib/swift/_foundation_unicode/umutablecptrie.h
++lib/swift/_foundation_unicode/unifilt.h
++lib/swift/_foundation_unicode/unifunct.h
++lib/swift/_foundation_unicode/unimatch.h
++lib/swift/_foundation_unicode/unirepl.h
++lib/swift/_foundation_unicode/uniset.h
++lib/swift/_foundation_unicode/unistr.h
++lib/swift/_foundation_unicode/unorm.h
++lib/swift/_foundation_unicode/unorm2.h
++lib/swift/_foundation_unicode/unum.h
++lib/swift/_foundation_unicode/unumberformatter.h
++lib/swift/_foundation_unicode/unumberoptions.h
++lib/swift/_foundation_unicode/unumberrangeformatter.h
++lib/swift/_foundation_unicode/unumsys.h
++lib/swift/_foundation_unicode/uobject.h
++lib/swift/_foundation_unicode/uplrule.h
++lib/swift/_foundation_unicode/upluralrules.h
++lib/swift/_foundation_unicode/urbtok.h
++lib/swift/_foundation_unicode/uregex.h
++lib/swift/_foundation_unicode/uregion.h
++lib/swift/_foundation_unicode/ureldatefmt.h
++lib/swift/_foundation_unicode/urename.h
++lib/swift/_foundation_unicode/urep.h
++lib/swift/_foundation_unicode/ures.h
++lib/swift/_foundation_unicode/uscript.h
++lib/swift/_foundation_unicode/usearch.h
++lib/swift/_foundation_unicode/uset.h
++lib/swift/_foundation_unicode/usetiter.h
++lib/swift/_foundation_unicode/ushape.h
++lib/swift/_foundation_unicode/usimplenumberformatter.h
++lib/swift/_foundation_unicode/uspoof.h
++lib/swift/_foundation_unicode/usprep.h
++lib/swift/_foundation_unicode/ustdio.h
++lib/swift/_foundation_unicode/ustream.h
++lib/swift/_foundation_unicode/ustring.h
++lib/swift/_foundation_unicode/ustringtrie.h
++lib/swift/_foundation_unicode/utext.h
++lib/swift/_foundation_unicode/utf.h
++lib/swift/_foundation_unicode/utf16.h
++lib/swift/_foundation_unicode/utf32.h
++lib/swift/_foundation_unicode/utf8.h
++lib/swift/_foundation_unicode/utf_old.h
++lib/swift/_foundation_unicode/utmscale.h
++lib/swift/_foundation_unicode/utrace.h
++lib/swift/_foundation_unicode/utrans.h
++lib/swift/_foundation_unicode/utypes.h
++lib/swift/_foundation_unicode/uvernum.h
++lib/swift/_foundation_unicode/uversion.h
++lib/swift/_foundation_unicode/vtzone.h
++@so lib/swift/host/plugins/libFoundationMacros.so
++lib/swift/openbsd/Foundation.swiftmodule/
++lib/swift/openbsd/Foundation.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/Foundation.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/FoundationEssentials.swiftmodule/
++lib/swift/openbsd/FoundationEssentials.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/FoundationEssentials.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/FoundationInternationalization.swiftmodule/
++lib/swift/openbsd/FoundationInternationalization.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/FoundationInternationalization.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/FoundationNetworking.swiftmodule/
++lib/swift/openbsd/FoundationNetworking.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/FoundationNetworking.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/FoundationXML.swiftmodule/
++lib/swift/openbsd/FoundationXML.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/FoundationXML.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/_FoundationCollections.swiftmodule/
++lib/swift/openbsd/_FoundationCollections.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/_FoundationCollections.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++@so lib/swift/openbsd/libFoundation.so
++@so lib/swift/openbsd/libFoundationEssentials.so
++@so lib/swift/openbsd/libFoundationInternationalization.so
++@so lib/swift/openbsd/libFoundationNetworking.so
++@so lib/swift/openbsd/libFoundationXML.so
++@so lib/swift/openbsd/lib_FoundationICU.so
++lib/swift_static/CoreFoundation/
++lib/swift_static/CoreFoundation/CFArray.h
++lib/swift_static/CoreFoundation/CFAttributedString.h
++lib/swift_static/CoreFoundation/CFAttributedStringPriv.h
++lib/swift_static/CoreFoundation/CFAvailability.h
++lib/swift_static/CoreFoundation/CFBag.h
++lib/swift_static/CoreFoundation/CFBase.h
++lib/swift_static/CoreFoundation/CFBigNumber.h
++lib/swift_static/CoreFoundation/CFBinaryHeap.h
++lib/swift_static/CoreFoundation/CFBitVector.h
++lib/swift_static/CoreFoundation/CFBundle.h
++lib/swift_static/CoreFoundation/CFBundlePriv.h
++lib/swift_static/CoreFoundation/CFBundle_BinaryTypes.h
++lib/swift_static/CoreFoundation/CFBurstTrie.h
++lib/swift_static/CoreFoundation/CFByteOrder.h
++lib/swift_static/CoreFoundation/CFCalendar.h
++lib/swift_static/CoreFoundation/CFCalendarPriv.h
++lib/swift_static/CoreFoundation/CFCharacterSet.h
++lib/swift_static/CoreFoundation/CFCharacterSetPriv.h
++lib/swift_static/CoreFoundation/CFConstantKeys.h
++lib/swift_static/CoreFoundation/CFData.h
++lib/swift_static/CoreFoundation/CFDate.h
++lib/swift_static/CoreFoundation/CFDateComponents.h
++lib/swift_static/CoreFoundation/CFDateFormatter.h
++lib/swift_static/CoreFoundation/CFDateFormatter_Private.h
++lib/swift_static/CoreFoundation/CFDateInterval.h
++lib/swift_static/CoreFoundation/CFDateIntervalFormatter.h
++lib/swift_static/CoreFoundation/CFDictionary.h
++lib/swift_static/CoreFoundation/CFError.h
++lib/swift_static/CoreFoundation/CFError_Private.h
++lib/swift_static/CoreFoundation/CFKnownLocations.h
++lib/swift_static/CoreFoundation/CFListFormatter.h
++lib/swift_static/CoreFoundation/CFLocale.h
++lib/swift_static/CoreFoundation/CFLocale_Private.h
++lib/swift_static/CoreFoundation/CFLocking.h
++lib/swift_static/CoreFoundation/CFLogUtilities.h
++lib/swift_static/CoreFoundation/CFMachPort.h
++lib/swift_static/CoreFoundation/CFMessagePort.h
++lib/swift_static/CoreFoundation/CFNotificationCenter.h
++lib/swift_static/CoreFoundation/CFNumber.h
++lib/swift_static/CoreFoundation/CFNumberFormatter.h
++lib/swift_static/CoreFoundation/CFNumber_Private.h
++lib/swift_static/CoreFoundation/CFOverflow.h
++lib/swift_static/CoreFoundation/CFPlugIn.h
++lib/swift_static/CoreFoundation/CFPlugInCOM.h
++lib/swift_static/CoreFoundation/CFPreferences.h
++lib/swift_static/CoreFoundation/CFPriv.h
++lib/swift_static/CoreFoundation/CFPropertyList.h
++lib/swift_static/CoreFoundation/CFPropertyList_Private.h
++lib/swift_static/CoreFoundation/CFRegularExpression.h
++lib/swift_static/CoreFoundation/CFRelativeDateTimeFormatter.h
++lib/swift_static/CoreFoundation/CFRunArray.h
++lib/swift_static/CoreFoundation/CFRunLoop.h
++lib/swift_static/CoreFoundation/CFRuntime.h
++lib/swift_static/CoreFoundation/CFSet.h
++lib/swift_static/CoreFoundation/CFSocket.h
++lib/swift_static/CoreFoundation/CFStorage.h
++lib/swift_static/CoreFoundation/CFStream.h
++lib/swift_static/CoreFoundation/CFStreamAbstract.h
++lib/swift_static/CoreFoundation/CFStreamPriv.h
++lib/swift_static/CoreFoundation/CFString.h
++lib/swift_static/CoreFoundation/CFStringDefaultEncoding.h
++lib/swift_static/CoreFoundation/CFStringEncodingConverter.h
++lib/swift_static/CoreFoundation/CFStringEncodingConverterExt.h
++lib/swift_static/CoreFoundation/CFStringEncodingConverterPriv.h
++lib/swift_static/CoreFoundation/CFStringEncodingDatabase.h
++lib/swift_static/CoreFoundation/CFStringEncodingExt.h
++lib/swift_static/CoreFoundation/CFString_Private.h
++lib/swift_static/CoreFoundation/CFTargetConditionals.h
++lib/swift_static/CoreFoundation/CFTimeZone.h
++lib/swift_static/CoreFoundation/CFTree.h
++lib/swift_static/CoreFoundation/CFURL.h
++lib/swift_static/CoreFoundation/CFURLAccess.h
++lib/swift_static/CoreFoundation/CFURLComponents.h
++lib/swift_static/CoreFoundation/CFURLPriv.h
++lib/swift_static/CoreFoundation/CFUUID.h
++lib/swift_static/CoreFoundation/CFUniChar.h
++lib/swift_static/CoreFoundation/CFUnicodeDecomposition.h
++lib/swift_static/CoreFoundation/CFUnicodePrecomposition.h
++lib/swift_static/CoreFoundation/CFUserNotification.h
++lib/swift_static/CoreFoundation/CFUtilities.h
++lib/swift_static/CoreFoundation/CoreFoundation.h
++lib/swift_static/CoreFoundation/ForFoundationOnly.h
++lib/swift_static/CoreFoundation/ForSwiftFoundationOnly.h
++lib/swift_static/CoreFoundation/module.modulemap
++lib/swift_static/CoreFoundation/static-module.map
++lib/swift_static/_FoundationCShims/
++lib/swift_static/_FoundationCShims/CFUniCharBitmapData.h
++lib/swift_static/_FoundationCShims/CFUniCharBitmapData.inc.h
++lib/swift_static/_FoundationCShims/_CShimsMacros.h
++lib/swift_static/_FoundationCShims/_CShimsTargetConditionals.h
++lib/swift_static/_FoundationCShims/_CStdlib.h
++lib/swift_static/_FoundationCShims/_FoundationCShims.h
++lib/swift_static/_FoundationCShims/bplist_shims.h
++lib/swift_static/_FoundationCShims/filemanager_shims.h
++lib/swift_static/_FoundationCShims/io_shims.h
++lib/swift_static/_FoundationCShims/module.modulemap
++lib/swift_static/_FoundationCShims/platform_shims.h
++lib/swift_static/_FoundationCShims/string_shims.h
++lib/swift_static/_FoundationCShims/uuid.h
++lib/swift_static/_foundation_unicode/
++lib/swift_static/_foundation_unicode/alphaindex.h
++lib/swift_static/_foundation_unicode/appendable.h
++lib/swift_static/_foundation_unicode/basictz.h
++lib/swift_static/_foundation_unicode/brkiter.h
++lib/swift_static/_foundation_unicode/bytestream.h
++lib/swift_static/_foundation_unicode/bytestrie.h
++lib/swift_static/_foundation_unicode/bytestriebuilder.h
++lib/swift_static/_foundation_unicode/calendar.h
++lib/swift_static/_foundation_unicode/caniter.h
++lib/swift_static/_foundation_unicode/casemap.h
++lib/swift_static/_foundation_unicode/char16ptr.h
++lib/swift_static/_foundation_unicode/chariter.h
++lib/swift_static/_foundation_unicode/choicfmt.h
++lib/swift_static/_foundation_unicode/coleitr.h
++lib/swift_static/_foundation_unicode/coll.h
++lib/swift_static/_foundation_unicode/compactdecimalformat.h
++lib/swift_static/_foundation_unicode/curramt.h
++lib/swift_static/_foundation_unicode/currpinf.h
++lib/swift_static/_foundation_unicode/currunit.h
++lib/swift_static/_foundation_unicode/datefmt.h
++lib/swift_static/_foundation_unicode/dbbi.h
++lib/swift_static/_foundation_unicode/dcfmtsym.h
++lib/swift_static/_foundation_unicode/decimfmt.h
++lib/swift_static/_foundation_unicode/displayoptions.h
++lib/swift_static/_foundation_unicode/docmain.h
++lib/swift_static/_foundation_unicode/dtfmtsym.h
++lib/swift_static/_foundation_unicode/dtintrv.h
++lib/swift_static/_foundation_unicode/dtitvfmt.h
++lib/swift_static/_foundation_unicode/dtitvinf.h
++lib/swift_static/_foundation_unicode/dtptngen.h
++lib/swift_static/_foundation_unicode/dtrule.h
++lib/swift_static/_foundation_unicode/edits.h
++lib/swift_static/_foundation_unicode/enumset.h
++lib/swift_static/_foundation_unicode/errorcode.h
++lib/swift_static/_foundation_unicode/fieldpos.h
++lib/swift_static/_foundation_unicode/filteredbrk.h
++lib/swift_static/_foundation_unicode/fmtable.h
++lib/swift_static/_foundation_unicode/format.h
++lib/swift_static/_foundation_unicode/formattednumber.h
++lib/swift_static/_foundation_unicode/formattedvalue.h
++lib/swift_static/_foundation_unicode/fpositer.h
++lib/swift_static/_foundation_unicode/gender.h
++lib/swift_static/_foundation_unicode/gregocal.h
++lib/swift_static/_foundation_unicode/icudataver.h
++lib/swift_static/_foundation_unicode/icuplug.h
++lib/swift_static/_foundation_unicode/idna.h
++lib/swift_static/_foundation_unicode/listformatter.h
++lib/swift_static/_foundation_unicode/localebuilder.h
++lib/swift_static/_foundation_unicode/localematcher.h
++lib/swift_static/_foundation_unicode/localpointer.h
++lib/swift_static/_foundation_unicode/locdspnm.h
++lib/swift_static/_foundation_unicode/locid.h
++lib/swift_static/_foundation_unicode/measfmt.h
++lib/swift_static/_foundation_unicode/measunit.h
++lib/swift_static/_foundation_unicode/measure.h
++lib/swift_static/_foundation_unicode/messagepattern.h
++lib/swift_static/_foundation_unicode/module.modulemap
++lib/swift_static/_foundation_unicode/msgfmt.h
++lib/swift_static/_foundation_unicode/normalizer2.h
++lib/swift_static/_foundation_unicode/normlzr.h
++lib/swift_static/_foundation_unicode/nounit.h
++lib/swift_static/_foundation_unicode/numberformatter.h
++lib/swift_static/_foundation_unicode/numberrangeformatter.h
++lib/swift_static/_foundation_unicode/numfmt.h
++lib/swift_static/_foundation_unicode/numsys.h
++lib/swift_static/_foundation_unicode/parseerr.h
++lib/swift_static/_foundation_unicode/parsepos.h
++lib/swift_static/_foundation_unicode/platform.h
++lib/swift_static/_foundation_unicode/plurfmt.h
++lib/swift_static/_foundation_unicode/plurrule.h
++lib/swift_static/_foundation_unicode/ptypes.h
++lib/swift_static/_foundation_unicode/putil.h
++lib/swift_static/_foundation_unicode/rbbi.h
++lib/swift_static/_foundation_unicode/rbnf.h
++lib/swift_static/_foundation_unicode/rbtz.h
++lib/swift_static/_foundation_unicode/regex.h
++lib/swift_static/_foundation_unicode/region.h
++lib/swift_static/_foundation_unicode/reldatefmt.h
++lib/swift_static/_foundation_unicode/rep.h
++lib/swift_static/_foundation_unicode/resbund.h
++lib/swift_static/_foundation_unicode/schriter.h
++lib/swift_static/_foundation_unicode/scientificnumberformatter.h
++lib/swift_static/_foundation_unicode/search.h
++lib/swift_static/_foundation_unicode/selfmt.h
++lib/swift_static/_foundation_unicode/simpleformatter.h
++lib/swift_static/_foundation_unicode/simplenumberformatter.h
++lib/swift_static/_foundation_unicode/simpletz.h
++lib/swift_static/_foundation_unicode/smpdtfmt.h
++lib/swift_static/_foundation_unicode/sortkey.h
++lib/swift_static/_foundation_unicode/std_string.h
++lib/swift_static/_foundation_unicode/strenum.h
++lib/swift_static/_foundation_unicode/stringoptions.h
++lib/swift_static/_foundation_unicode/stringpiece.h
++lib/swift_static/_foundation_unicode/stringtriebuilder.h
++lib/swift_static/_foundation_unicode/stsearch.h
++lib/swift_static/_foundation_unicode/symtable.h
++lib/swift_static/_foundation_unicode/tblcoll.h
++lib/swift_static/_foundation_unicode/timezone.h
++lib/swift_static/_foundation_unicode/tmunit.h
++lib/swift_static/_foundation_unicode/tmutamt.h
++lib/swift_static/_foundation_unicode/tmutfmt.h
++lib/swift_static/_foundation_unicode/translit.h
++lib/swift_static/_foundation_unicode/tzfmt.h
++lib/swift_static/_foundation_unicode/tznames.h
++lib/swift_static/_foundation_unicode/tzrule.h
++lib/swift_static/_foundation_unicode/tztrans.h
++lib/swift_static/_foundation_unicode/ualoc.h
++lib/swift_static/_foundation_unicode/uameasureformat.h
++lib/swift_static/_foundation_unicode/uameasureunit.h
++lib/swift_static/_foundation_unicode/uatimeunitformat.h
++lib/swift_static/_foundation_unicode/ubidi.h
++lib/swift_static/_foundation_unicode/ubiditransform.h
++lib/swift_static/_foundation_unicode/ubrk.h
++lib/swift_static/_foundation_unicode/ucal.h
++lib/swift_static/_foundation_unicode/ucasemap.h
++lib/swift_static/_foundation_unicode/ucat.h
++lib/swift_static/_foundation_unicode/uchar.h
++lib/swift_static/_foundation_unicode/ucharstrie.h
++lib/swift_static/_foundation_unicode/ucharstriebuilder.h
++lib/swift_static/_foundation_unicode/uchriter.h
++lib/swift_static/_foundation_unicode/uclean.h
++lib/swift_static/_foundation_unicode/ucnv.h
++lib/swift_static/_foundation_unicode/ucnv_cb.h
++lib/swift_static/_foundation_unicode/ucnv_err.h
++lib/swift_static/_foundation_unicode/ucnvsel.h
++lib/swift_static/_foundation_unicode/ucol.h
++lib/swift_static/_foundation_unicode/ucoleitr.h
++lib/swift_static/_foundation_unicode/uconfig.h
++lib/swift_static/_foundation_unicode/ucpmap.h
++lib/swift_static/_foundation_unicode/ucptrie.h
++lib/swift_static/_foundation_unicode/ucsdet.h
++lib/swift_static/_foundation_unicode/ucurr.h
++lib/swift_static/_foundation_unicode/udat.h
++lib/swift_static/_foundation_unicode/udata.h
++lib/swift_static/_foundation_unicode/udateintervalformat.h
++lib/swift_static/_foundation_unicode/udatintv.h
++lib/swift_static/_foundation_unicode/udatpg.h
++lib/swift_static/_foundation_unicode/udisplaycontext.h
++lib/swift_static/_foundation_unicode/udisplayoptions.h
++lib/swift_static/_foundation_unicode/uenum.h
++lib/swift_static/_foundation_unicode/ufieldpositer.h
++lib/swift_static/_foundation_unicode/uformattable.h
++lib/swift_static/_foundation_unicode/uformattednumber.h
++lib/swift_static/_foundation_unicode/uformattedvalue.h
++lib/swift_static/_foundation_unicode/ugender.h
++lib/swift_static/_foundation_unicode/uidna.h
++lib/swift_static/_foundation_unicode/uiter.h
++lib/swift_static/_foundation_unicode/uldnames.h
++lib/swift_static/_foundation_unicode/ulistformatter.h
++lib/swift_static/_foundation_unicode/uloc.h
++lib/swift_static/_foundation_unicode/ulocale.h
++lib/swift_static/_foundation_unicode/ulocbuilder.h
++lib/swift_static/_foundation_unicode/ulocdata.h
++lib/swift_static/_foundation_unicode/umachine.h
++lib/swift_static/_foundation_unicode/umisc.h
++lib/swift_static/_foundation_unicode/umsg.h
++lib/swift_static/_foundation_unicode/umutablecptrie.h
++lib/swift_static/_foundation_unicode/unifilt.h
++lib/swift_static/_foundation_unicode/unifunct.h
++lib/swift_static/_foundation_unicode/unimatch.h
++lib/swift_static/_foundation_unicode/unirepl.h
++lib/swift_static/_foundation_unicode/uniset.h
++lib/swift_static/_foundation_unicode/unistr.h
++lib/swift_static/_foundation_unicode/unorm.h
++lib/swift_static/_foundation_unicode/unorm2.h
++lib/swift_static/_foundation_unicode/unum.h
++lib/swift_static/_foundation_unicode/unumberformatter.h
++lib/swift_static/_foundation_unicode/unumberoptions.h
++lib/swift_static/_foundation_unicode/unumberrangeformatter.h
++lib/swift_static/_foundation_unicode/unumsys.h
++lib/swift_static/_foundation_unicode/uobject.h
++lib/swift_static/_foundation_unicode/uplrule.h
++lib/swift_static/_foundation_unicode/upluralrules.h
++lib/swift_static/_foundation_unicode/urbtok.h
++lib/swift_static/_foundation_unicode/uregex.h
++lib/swift_static/_foundation_unicode/uregion.h
++lib/swift_static/_foundation_unicode/ureldatefmt.h
++lib/swift_static/_foundation_unicode/urename.h
++lib/swift_static/_foundation_unicode/urep.h
++lib/swift_static/_foundation_unicode/ures.h
++lib/swift_static/_foundation_unicode/uscript.h
++lib/swift_static/_foundation_unicode/usearch.h
++lib/swift_static/_foundation_unicode/uset.h
++lib/swift_static/_foundation_unicode/usetiter.h
++lib/swift_static/_foundation_unicode/ushape.h
++lib/swift_static/_foundation_unicode/usimplenumberformatter.h
++lib/swift_static/_foundation_unicode/uspoof.h
++lib/swift_static/_foundation_unicode/usprep.h
++lib/swift_static/_foundation_unicode/ustdio.h
++lib/swift_static/_foundation_unicode/ustream.h
++lib/swift_static/_foundation_unicode/ustring.h
++lib/swift_static/_foundation_unicode/ustringtrie.h
++lib/swift_static/_foundation_unicode/utext.h
++lib/swift_static/_foundation_unicode/utf.h
++lib/swift_static/_foundation_unicode/utf16.h
++lib/swift_static/_foundation_unicode/utf32.h
++lib/swift_static/_foundation_unicode/utf8.h
++lib/swift_static/_foundation_unicode/utf_old.h
++lib/swift_static/_foundation_unicode/utmscale.h
++lib/swift_static/_foundation_unicode/utrace.h
++lib/swift_static/_foundation_unicode/utrans.h
++lib/swift_static/_foundation_unicode/utypes.h
++lib/swift_static/_foundation_unicode/uvernum.h
++lib/swift_static/_foundation_unicode/uversion.h
++lib/swift_static/_foundation_unicode/vtzone.h
++lib/swift_static/openbsd/Foundation.swiftmodule/
++lib/swift_static/openbsd/Foundation.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift_static/openbsd/Foundation.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift_static/openbsd/FoundationEssentials.swiftmodule/
++lib/swift_static/openbsd/FoundationEssentials.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift_static/openbsd/FoundationEssentials.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift_static/openbsd/FoundationInternationalization.swiftmodule/
++lib/swift_static/openbsd/FoundationInternationalization.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift_static/openbsd/FoundationInternationalization.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift_static/openbsd/FoundationNetworking.swiftmodule/
++lib/swift_static/openbsd/FoundationNetworking.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift_static/openbsd/FoundationNetworking.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift_static/openbsd/FoundationXML.swiftmodule/
++lib/swift_static/openbsd/FoundationXML.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift_static/openbsd/FoundationXML.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift_static/openbsd/_FoundationCollections.swiftmodule/
++lib/swift_static/openbsd/_FoundationCollections.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift_static/openbsd/_FoundationCollections.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++@static-lib lib/swift_static/openbsd/libCoreFoundation.a
++@static-lib lib/swift_static/openbsd/libFoundation.a
++@static-lib lib/swift_static/openbsd/libFoundationEssentials.a
++@static-lib lib/swift_static/openbsd/libFoundationInternationalization.a
++@static-lib lib/swift_static/openbsd/libFoundationNetworking.a
++@static-lib lib/swift_static/openbsd/libFoundationXML.a
++@static-lib lib/swift_static/openbsd/lib_CFURLSessionInterface.a
++@static-lib lib/swift_static/openbsd/lib_CFXMLInterface.a
++@static-lib lib/swift_static/openbsd/lib_FoundationCShims.a
++@static-lib lib/swift_static/openbsd/lib_FoundationCollections.a
++@static-lib lib/swift_static/openbsd/lib_FoundationICU.a
+Index: lang/swift/pkg/PLIST-libdispatch
+===================================================================
+RCS file: lang/swift/pkg/PLIST-libdispatch
+diff -N lang/swift/pkg/PLIST-libdispatch
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/PLIST-libdispatch	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,56 @@
++lib/swift/Block/
++lib/swift/Block/Block.h
++lib/swift/dispatch/
++lib/swift/dispatch/base.h
++lib/swift/dispatch/block.h
++lib/swift/dispatch/data.h
++lib/swift/dispatch/dispatch.h
++lib/swift/dispatch/group.h
++lib/swift/dispatch/introspection.h
++lib/swift/dispatch/io.h
++lib/swift/dispatch/module.modulemap
++lib/swift/dispatch/object.h
++lib/swift/dispatch/once.h
++lib/swift/dispatch/queue.h
++lib/swift/dispatch/semaphore.h
++lib/swift/dispatch/source.h
++lib/swift/dispatch/time.h
++lib/swift/openbsd/Dispatch.swiftmodule/
++lib/swift/openbsd/Dispatch.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/Dispatch.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++@so lib/swift/openbsd/libBlocksRuntime.so
++@so lib/swift/openbsd/libdispatch.so
++@so lib/swift/openbsd/libswiftDispatch.so
++lib/swift/os/
++lib/swift/os/generic_base.h
++lib/swift/os/generic_unix_base.h
++lib/swift/os/generic_win_base.h
++lib/swift/os/object.h
++lib/swift_static/Block/
++lib/swift_static/Block/Block.h
++lib/swift_static/dispatch/
++lib/swift_static/dispatch/base.h
++lib/swift_static/dispatch/block.h
++lib/swift_static/dispatch/data.h
++lib/swift_static/dispatch/dispatch.h
++lib/swift_static/dispatch/group.h
++lib/swift_static/dispatch/introspection.h
++lib/swift_static/dispatch/io.h
++lib/swift_static/dispatch/module.modulemap
++lib/swift_static/dispatch/object.h
++lib/swift_static/dispatch/once.h
++lib/swift_static/dispatch/queue.h
++lib/swift_static/dispatch/semaphore.h
++lib/swift_static/dispatch/source.h
++lib/swift_static/dispatch/time.h
++lib/swift_static/openbsd/Dispatch.swiftmodule/
++lib/swift_static/openbsd/Dispatch.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift_static/openbsd/Dispatch.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++@static-lib lib/swift_static/openbsd/libBlocksRuntime.a
++@static-lib lib/swift_static/openbsd/libdispatch.a
++@static-lib lib/swift_static/openbsd/libswiftDispatch.a
++lib/swift_static/os/
++lib/swift_static/os/generic_base.h
++lib/swift_static/os/generic_unix_base.h
++lib/swift_static/os/generic_win_base.h
++lib/swift_static/os/object.h
+Index: lang/swift/pkg/PLIST-lsp
+===================================================================
+RCS file: lang/swift/pkg/PLIST-lsp
+diff -N lang/swift/pkg/PLIST-lsp
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/PLIST-lsp	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,3 @@
++@bin bin/sourcekit-lsp
++@so lib/libSwiftSourceKitClientPlugin.so
++@so lib/libSwiftSourceKitPlugin.so
+Index: lang/swift/pkg/PLIST-main
+===================================================================
+RCS file: lang/swift/pkg/PLIST-main
+diff -N lang/swift/pkg/PLIST-main
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/PLIST-main	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,78 @@
++bin/sdk-module-lists/
++bin/sdk-module-lists/create-module-lists.sh
++bin/sdk-module-lists/fixed-clang-modules-appletvos.txt
++bin/sdk-module-lists/fixed-clang-modules-common.txt
++bin/sdk-module-lists/fixed-clang-modules-iosmac.txt
++bin/sdk-module-lists/fixed-clang-modules-iphoneos.txt
++bin/sdk-module-lists/fixed-clang-modules-macosx.txt
++bin/sdk-module-lists/fixed-clang-modules-watchos.txt
++bin/sdk-module-lists/fixed-swift-modules-appletvos.txt
++bin/sdk-module-lists/fixed-swift-modules-common.txt
++bin/sdk-module-lists/fixed-swift-modules-iosmac.txt
++bin/sdk-module-lists/fixed-swift-modules-iphoneos.txt
++bin/sdk-module-lists/fixed-swift-modules-macosx.txt
++bin/sdk-module-lists/fixed-swift-modules-watchos.txt
++bin/sdk-module-lists/infer-imports.py
++bin/swift
++bin/swift-api-checker.py
++bin/swift-api-digester
++bin/swift-autolink-extract
++@bin bin/swift-build-sdk-interfaces
++@bin bin/swift-build-tool
++bin/swift-cache-tool
++@bin bin/swift-demangle
++@bin bin/swift-driver
++@bin bin/swift-frontend
++@bin bin/swift-help
++bin/swift-legacy-driver
++@bin bin/swift-plugin-server
++bin/swift-symbolgraph-extract
++bin/swift-synthesize-interface
++bin/swiftc
++bin/swiftc-legacy-driver
++include/module.modulemap
++include/swift/
++include/swift/bridging
++include/swift/bridging.modulemap
++@man man/man1/swift.1
++share/doc/swift/
++share/doc/swift/diagnostics/
++share/doc/swift/diagnostics/actor-isolated-call.md
++share/doc/swift/diagnostics/availability-unrecognized-name.md
++share/doc/swift/diagnostics/clang-declaration-import.md
++share/doc/swift/diagnostics/conformance-isolation.md
++share/doc/swift/diagnostics/deprecated-declaration.md
++share/doc/swift/diagnostics/dynamic-callable-requirements.md
++share/doc/swift/diagnostics/error-in-future-swift-version.md
++share/doc/swift/diagnostics/existential-any.md
++share/doc/swift/diagnostics/existential-member-access-limitations.md
++share/doc/swift/diagnostics/implementation-only-deprecated.md
++share/doc/swift/diagnostics/isolated-conformances.md
++share/doc/swift/diagnostics/member-import-visibility.md
++share/doc/swift/diagnostics/missing-module-on-known-paths.md
++share/doc/swift/diagnostics/multiple-inheritance.md
++share/doc/swift/diagnostics/mutable-global-variable.md
++share/doc/swift/diagnostics/nominal-types.md
++share/doc/swift/diagnostics/nonisolated-nonsending-by-default.md
++share/doc/swift/diagnostics/opaque-type-inference.md
++share/doc/swift/diagnostics/preconcurrency-import.md
++share/doc/swift/diagnostics/property-wrapper-requirements.md
++share/doc/swift/diagnostics/protocol-type-non-conformance.md
++share/doc/swift/diagnostics/result-builder-methods.md
++share/doc/swift/diagnostics/sendable-closure-captures.md
++share/doc/swift/diagnostics/sendable-metatypes.md
++share/doc/swift/diagnostics/sending-closure-risks-data-race.md
++share/doc/swift/diagnostics/sending-risks-data-race.md
++share/doc/swift/diagnostics/strict-language-features.md
++share/doc/swift/diagnostics/strict-memory-safety.md
++share/doc/swift/diagnostics/string-interpolation-conformance.md
++share/doc/swift/diagnostics/temporary-pointers.md
++share/doc/swift/diagnostics/trailing-closure-matching.md
++share/doc/swift/diagnostics/unknown-warning-group.md
++share/swift/
++share/swift/LICENSE.txt
++share/swift/compatibility-symbols
++share/swift/diagnostics/
++share/swift/diagnostics/en.db
++share/swift/diagnostics/en.strings
++share/swift/features.json
+Index: lang/swift/pkg/PLIST-stdlib
+===================================================================
+RCS file: lang/swift/pkg/PLIST-stdlib
+diff -N lang/swift/pkg/PLIST-stdlib
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/PLIST-stdlib	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,266 @@
++@so lib/libswiftDemangle.so
++lib/swift/
++lib/swift/FrameworkABIBaseline/
++lib/swift/FrameworkABIBaseline/README
++lib/swift/FrameworkABIBaseline/Swift/
++lib/swift/FrameworkABIBaseline/Swift/ABI/
++lib/swift/FrameworkABIBaseline/Swift/ABI/macos.json
++lib/swift/FrameworkABIBaseline/Swift/API/
++lib/swift/FrameworkABIBaseline/Swift/API/macos.json
++lib/swift/FrameworkABIBaseline/_Concurrency/
++lib/swift/FrameworkABIBaseline/_Concurrency/ABI/
++lib/swift/FrameworkABIBaseline/_Concurrency/ABI/macos.json
++lib/swift/FrameworkABIBaseline/nil.json
++lib/swift/_InternalSwiftScan/
++lib/swift/_InternalSwiftScan/DependencyScan.h
++lib/swift/_InternalSwiftScan/DependencyScanMacros.h
++lib/swift/_InternalSwiftScan/module.modulemap
++lib/swift/_InternalSwiftStaticMirror/
++lib/swift/_InternalSwiftStaticMirror/BinaryScan.h
++lib/swift/_InternalSwiftStaticMirror/StaticMirrorMacros.h
++lib/swift/_InternalSwiftStaticMirror/module.modulemap
++lib/swift/apinotes/
++lib/swift/apinotes/std.apinotes
++lib/swift/clang
++lib/swift/embedded/
++lib/swift/embedded/libcxxshim.h
++lib/swift/embedded/libcxxshim.modulemap
++lib/swift/embedded/libcxxstdlibshim.h
++lib/swift/host/
++lib/swift/host/SwiftBasicFormat.swiftmodule/
++lib/swift/host/SwiftBasicFormat.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/host/SwiftBasicFormat.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/host/SwiftCompilerPluginMessageHandling.swiftmodule/
++lib/swift/host/SwiftCompilerPluginMessageHandling.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/host/SwiftCompilerPluginMessageHandling.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/host/SwiftDiagnostics.swiftmodule/
++lib/swift/host/SwiftDiagnostics.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/host/SwiftDiagnostics.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/host/SwiftIDEUtils.swiftmodule/
++lib/swift/host/SwiftIDEUtils.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/host/SwiftIDEUtils.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/host/SwiftIfConfig.swiftmodule/
++lib/swift/host/SwiftIfConfig.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/host/SwiftIfConfig.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/host/SwiftLibraryPluginProvider.swiftmodule/
++lib/swift/host/SwiftLibraryPluginProvider.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/host/SwiftLibraryPluginProvider.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/host/SwiftOperators.swiftmodule/
++lib/swift/host/SwiftOperators.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/host/SwiftOperators.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/host/SwiftParser.swiftmodule/
++lib/swift/host/SwiftParser.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/host/SwiftParser.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/host/SwiftParserDiagnostics.swiftmodule/
++lib/swift/host/SwiftParserDiagnostics.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/host/SwiftParserDiagnostics.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/host/SwiftRefactor.swiftmodule/
++lib/swift/host/SwiftRefactor.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/host/SwiftRefactor.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/host/SwiftSyntax.swiftmodule/
++lib/swift/host/SwiftSyntax.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/host/SwiftSyntax.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/host/SwiftSyntaxBuilder.swiftmodule/
++lib/swift/host/SwiftSyntaxBuilder.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/host/SwiftSyntaxBuilder.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/host/SwiftSyntaxMacroExpansion.swiftmodule/
++lib/swift/host/SwiftSyntaxMacroExpansion.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/host/SwiftSyntaxMacroExpansion.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/host/SwiftSyntaxMacros.swiftmodule/
++lib/swift/host/SwiftSyntaxMacros.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/host/SwiftSyntaxMacros.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/host/compiler/
++@so lib/swift/host/compiler/lib_CompilerSwiftBasicFormat.so
++@so lib/swift/host/compiler/lib_CompilerSwiftCompilerPluginMessageHandling.so
++@so lib/swift/host/compiler/lib_CompilerSwiftDiagnostics.so
++@so lib/swift/host/compiler/lib_CompilerSwiftIDEUtils.so
++@so lib/swift/host/compiler/lib_CompilerSwiftIfConfig.so
++@so lib/swift/host/compiler/lib_CompilerSwiftLexicalLookup.so
++@so lib/swift/host/compiler/lib_CompilerSwiftOperators.so
++@so lib/swift/host/compiler/lib_CompilerSwiftParser.so
++@so lib/swift/host/compiler/lib_CompilerSwiftParserDiagnostics.so
++@so lib/swift/host/compiler/lib_CompilerSwiftSyntax.so
++@so lib/swift/host/compiler/lib_CompilerSwiftSyntaxBuilder.so
++@so lib/swift/host/compiler/lib_CompilerSwiftSyntaxMacroExpansion.so
++@so lib/swift/host/compiler/lib_CompilerSwiftSyntaxMacros.so
++@so lib/swift/host/compiler/lib_InternalSwiftScan.so
++@so lib/swift/host/libSwiftBasicFormat.so
++@so lib/swift/host/libSwiftCompilerPluginMessageHandling.so
++@so lib/swift/host/libSwiftDiagnostics.so
++@so lib/swift/host/libSwiftIDEUtils.so
++@so lib/swift/host/libSwiftIfConfig.so
++@so lib/swift/host/libSwiftInProcPluginServer.so
++@so lib/swift/host/libSwiftLibraryPluginProvider.so
++@so lib/swift/host/libSwiftOperators.so
++@so lib/swift/host/libSwiftParser.so
++@so lib/swift/host/libSwiftParserDiagnostics.so
++@so lib/swift/host/libSwiftRefactor.so
++@so lib/swift/host/libSwiftSyntax.so
++@so lib/swift/host/libSwiftSyntaxBuilder.so
++@so lib/swift/host/libSwiftSyntaxMacroExpansion.so
++@so lib/swift/host/libSwiftSyntaxMacros.so
++@so lib/swift/host/lib_InternalSwiftScan.so
++lib/swift/host/plugins/
++@so lib/swift/host/plugins/libObservationMacros.so
++@so lib/swift/host/plugins/libSwiftMacros.so
++lib/swift/migrator/
++lib/swift/migrator/ios4.json
++lib/swift/migrator/ios42.json
++lib/swift/migrator/macos4.json
++lib/swift/migrator/macos42.json
++lib/swift/migrator/overlay4.json
++lib/swift/migrator/overlay42.json
++lib/swift/migrator/tvos4.json
++lib/swift/migrator/tvos42.json
++lib/swift/migrator/watchos4.json
++lib/swift/migrator/watchos42.json
++lib/swift/openbsd/
++lib/swift/openbsd/Cxx.swiftmodule/
++lib/swift/openbsd/Cxx.swiftmodule/${SWIFT_TRIPLE}.abi.json
++lib/swift/openbsd/Cxx.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/openbsd/Cxx.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/Cxx.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/openbsd/Cxx.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/Distributed.swiftmodule/
++lib/swift/openbsd/Distributed.swiftmodule/${SWIFT_TRIPLE}.abi.json
++lib/swift/openbsd/Distributed.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/openbsd/Distributed.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/Distributed.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/openbsd/Distributed.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/Glibc.swiftmodule/
++lib/swift/openbsd/Glibc.swiftmodule/${SWIFT_TRIPLE}.abi.json
++lib/swift/openbsd/Glibc.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/openbsd/Glibc.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/Glibc.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/openbsd/Glibc.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/Observation.swiftmodule/
++lib/swift/openbsd/Observation.swiftmodule/${SWIFT_TRIPLE}.abi.json
++lib/swift/openbsd/Observation.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/openbsd/Observation.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/Observation.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/openbsd/Observation.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/RegexBuilder.swiftmodule/
++lib/swift/openbsd/RegexBuilder.swiftmodule/${SWIFT_TRIPLE}.abi.json
++lib/swift/openbsd/RegexBuilder.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/openbsd/RegexBuilder.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/RegexBuilder.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/openbsd/RegexBuilder.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/Swift.swiftmodule/
++lib/swift/openbsd/Swift.swiftmodule/${SWIFT_TRIPLE}.abi.json
++lib/swift/openbsd/Swift.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/openbsd/Swift.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/Swift.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/openbsd/Swift.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/SwiftOnoneSupport.swiftmodule/
++lib/swift/openbsd/SwiftOnoneSupport.swiftmodule/${SWIFT_TRIPLE}.abi.json
++lib/swift/openbsd/SwiftOnoneSupport.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/openbsd/SwiftOnoneSupport.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/SwiftOnoneSupport.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/openbsd/SwiftOnoneSupport.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/Synchronization.swiftmodule/
++lib/swift/openbsd/Synchronization.swiftmodule/${SWIFT_TRIPLE}.abi.json
++lib/swift/openbsd/Synchronization.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/openbsd/Synchronization.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/Synchronization.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/openbsd/Synchronization.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/_Builtin_float.swiftmodule/
++lib/swift/openbsd/_Builtin_float.swiftmodule/${SWIFT_TRIPLE}.abi.json
++lib/swift/openbsd/_Builtin_float.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/openbsd/_Builtin_float.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/_Builtin_float.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/openbsd/_Builtin_float.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/_Concurrency.swiftmodule/
++lib/swift/openbsd/_Concurrency.swiftmodule/${SWIFT_TRIPLE}.abi.json
++lib/swift/openbsd/_Concurrency.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/openbsd/_Concurrency.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/_Concurrency.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/openbsd/_Concurrency.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/_Differentiation.swiftmodule/
++lib/swift/openbsd/_Differentiation.swiftmodule/${SWIFT_TRIPLE}.abi.json
++lib/swift/openbsd/_Differentiation.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/openbsd/_Differentiation.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/_Differentiation.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/openbsd/_Differentiation.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/_RegexParser.swiftmodule/
++lib/swift/openbsd/_RegexParser.swiftmodule/${SWIFT_TRIPLE}.abi.json
++lib/swift/openbsd/_RegexParser.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/openbsd/_RegexParser.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/_RegexParser.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/openbsd/_RegexParser.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/_StringProcessing.swiftmodule/
++lib/swift/openbsd/_StringProcessing.swiftmodule/${SWIFT_TRIPLE}.abi.json
++lib/swift/openbsd/_StringProcessing.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/openbsd/_StringProcessing.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/_StringProcessing.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/openbsd/_StringProcessing.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/_Volatile.swiftmodule/
++lib/swift/openbsd/_Volatile.swiftmodule/${SWIFT_TRIPLE}.abi.json
++lib/swift/openbsd/_Volatile.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift/openbsd/_Volatile.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/_Volatile.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/openbsd/_Volatile.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift/openbsd/${LLVM_SPELLING_ARCH}/
++lib/swift/openbsd/${LLVM_SPELLING_ARCH}/SwiftGlibc.h
++lib/swift/openbsd/${LLVM_SPELLING_ARCH}/glibc.modulemap
++lib/swift/openbsd/${LLVM_SPELLING_ARCH}/swiftrt.o
++@so lib/swift/openbsd/lib_InternalSwiftStaticMirror.so
++lib/swift/openbsd/libcxxshim.h
++lib/swift/openbsd/libcxxshim.modulemap
++lib/swift/openbsd/libcxxstdlibshim.h
++@so lib/swift/openbsd/libswiftCore.so
++@static-lib lib/swift/openbsd/libswiftCxx.a
++@so lib/swift/openbsd/libswiftDistributed.so
++@so lib/swift/openbsd/libswiftGlibc.so
++@so lib/swift/openbsd/libswiftObservation.so
++@so lib/swift/openbsd/libswiftRegexBuilder.so
++@so lib/swift/openbsd/libswiftRemoteMirror.so
++@so lib/swift/openbsd/libswiftSwiftOnoneSupport.so
++@so lib/swift/openbsd/libswiftSynchronization.so
++@so lib/swift/openbsd/libswift_Builtin_float.so
++@so lib/swift/openbsd/libswift_Concurrency.so
++@so lib/swift/openbsd/libswift_Differentiation.so
++@so lib/swift/openbsd/libswift_RegexParser.so
++@so lib/swift/openbsd/libswift_StringProcessing.so
++@so lib/swift/openbsd/libswift_Volatile.so
++lib/swift/shims/
++lib/swift/shims/AssertionReporting.h
++lib/swift/shims/CoreFoundationShims.h
++lib/swift/shims/EmbeddedShims.h
++lib/swift/shims/FoundationShims.h
++lib/swift/shims/GlobalObjects.h
++lib/swift/shims/HeapObject.h
++lib/swift/shims/KeyPath.h
++lib/swift/shims/LibcOverlayShims.h
++lib/swift/shims/LibcShims.h
++lib/swift/shims/MetadataSections.h
++lib/swift/shims/ObjCShims.h
++lib/swift/shims/Random.h
++lib/swift/shims/RefCount.h
++lib/swift/shims/Reflection.h
++lib/swift/shims/RuntimeShims.h
++lib/swift/shims/RuntimeStubs.h
++lib/swift/shims/SwiftStdbool.h
++lib/swift/shims/SwiftStddef.h
++lib/swift/shims/SwiftStdint.h
++lib/swift/shims/System.h
++lib/swift/shims/Target.h
++lib/swift/shims/ThreadLocalStorage.h
++lib/swift/shims/UnicodeData.h
++lib/swift/shims/Visibility.h
++lib/swift/shims/_SwiftConcurrency.h
++lib/swift/shims/_SwiftDistributed.h
++lib/swift/shims/_SynchronizationShims.h
++lib/swift/shims/module.modulemap
++lib/swift/swiftToCxx/
++lib/swift/swiftToCxx/_SwiftCxxInteroperability.h
++lib/swift/swiftToCxx/_SwiftStdlibCxxOverlay.h
++lib/swift/swiftToCxx/experimental-interoperability-version.json
++lib/swift_static/
++lib/swift_static/clang
++lib/swift_static/openbsd/
++lib/swift_static/openbsd/Cxx.swiftmodule/
++lib/swift_static/openbsd/Cxx.swiftmodule/${SWIFT_TRIPLE}.private.swiftinterface
++lib/swift_static/openbsd/Cxx.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift_static/openbsd/Cxx.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift_static/openbsd/Cxx.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++lib/swift_static/openbsd/static-stdlib-args.lnk
+Index: lang/swift/pkg/PLIST-swiftpm
+===================================================================
+RCS file: lang/swift/pkg/PLIST-swiftpm
+diff -N lang/swift/pkg/PLIST-swiftpm
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/PLIST-swiftpm	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,202 @@
++bin/swift-build
++bin/swift-experimental-sdk
++@bin bin/swift-package
++bin/swift-package-collection
++bin/swift-package-registry
++bin/swift-run
++bin/swift-sdk
++bin/swift-test
++lib/swift/pm/
++lib/swift/pm/ManifestAPI/
++lib/swift/pm/ManifestAPI/CompilerPluginSupport.swiftdoc
++lib/swift/pm/ManifestAPI/CompilerPluginSupport.swiftmodule
++lib/swift/pm/ManifestAPI/PackageDescription.swiftdoc
++lib/swift/pm/ManifestAPI/PackageDescription.swiftmodule
++@so lib/swift/pm/ManifestAPI/libPackageDescription.so
++lib/swift/pm/PluginAPI/
++lib/swift/pm/PluginAPI/PackagePlugin.swiftdoc
++lib/swift/pm/PluginAPI/PackagePlugin.swiftmodule
++@so lib/swift/pm/PluginAPI/libPackagePlugin.so
++share/pm/
++share/pm/SwiftBuild_SWBAndroidPlatform.resources/
++share/pm/SwiftBuild_SWBAndroidPlatform.resources/Android.xcspec
++share/pm/SwiftBuild_SWBAndroidPlatform.resources/Info.plist
++share/pm/SwiftBuild_SWBApplePlatform.resources/
++share/pm/SwiftBuild_SWBApplePlatform.resources/AppIntentsMetadata.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/AppIntentsNLTraining.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/AppShortcutStringsMetadata.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/AssetCatalogCompiler.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/CompileSkybox.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/CopyPNGFile.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/CopyTiffFile.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/CoreData.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/CoreML.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/DTrace.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/DarwinPackageTypes.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/DarwinProductTypes.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/DriverKit.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/EXUtil.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/Embedded-Device.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/Embedded-Shared.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/Embedded-Simulator.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/EmbeddedBinaryValidationUtility.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/GenerateAppPlaygroundAssetCatalog.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/GenerateTextureAtlas.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/IBCompiler.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/IBPostprocessor.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/IBStoryboardCompiler.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/IBStoryboardLinker.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/IBStoryboardPostprocessor.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/Iconutil.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/Iig.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/Info.plist
++share/pm/SwiftBuild_SWBApplePlatform.resources/InfoPlistUtility.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/InstrumentsPackage.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/Intents.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/InterfaceBuilderFileTypes.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/KernelExtension.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/LSRegisterURL.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/Lipo.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/MetalCompiler.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/MetalFileTypes.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/MetalLinker.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/MetalPackageTypes.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/MetalProductTypes.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/MiG.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/OSACompile.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/OpenCL.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/RCFileTypes.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/RealityAssets.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/ReferenceObject.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/ResMerger.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/Rez.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/SceneKitFileTypes.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/SceneKitTools.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/SpriteKitFileTypes.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/TiffUtil.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/WatchKit1ProductTypes.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/XCAppExtensionPoints.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/XCStrings.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/CopyTiffFile.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/DTrace.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/Iconutil.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/InstrumentsPackage.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/Interface Builder Storyboard Compiler.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/Interface Builder Storyboard Postprocessor.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/LSRegisterURL.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/MiG.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/OSACompile.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/OpenCL.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/ResMerger.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/Rez.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/TiffUtil.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/com.apple.build-tasks.generate-texture-atlas.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/com.apple.compilers.assetcatalog.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/com.apple.compilers.metal-linker.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/com.apple.compilers.metal.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/com.apple.compilers.model.coredata.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/com.apple.compilers.model.coredatamapping.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/com.apple.compilers.model.mlkit.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/com.apple.compilers.model.persistence.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/com.apple.compilers.referenceobject.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/com.apple.xcode.tools.ibtool.compiler.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/en.lproj/com.apple.xcode.tools.ibtool.postprocessor.strings
++share/pm/SwiftBuild_SWBApplePlatform.resources/iOSDevice.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/iOSShared.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/iOSSimulator.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/macOSArchitectures.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/macOSCoreBuildSystem.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/macOSNativeBuildSystem.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/macOSPackageTypes.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/macOSProductTypes.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/tvOSDevice.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/tvOSShared.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/tvOSSimulator.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/watchOSDevice.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/watchOSShared.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/watchOSSimulator.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/xrOSDevice.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/xrOSShared.xcspec
++share/pm/SwiftBuild_SWBApplePlatform.resources/xrOSSimulator.xcspec
++share/pm/SwiftBuild_SWBCore.resources/
++share/pm/SwiftBuild_SWBCore.resources/CoreBuildSystem.xcspec
++share/pm/SwiftBuild_SWBCore.resources/ExternalBuildSystem.xcspec
++share/pm/SwiftBuild_SWBCore.resources/Info.plist
++share/pm/SwiftBuild_SWBCore.resources/NativeBuildSystem.xcspec
++share/pm/SwiftBuild_SWBCore.resources/en.lproj/
++share/pm/SwiftBuild_SWBCore.resources/en.lproj/CoreBuildSystem.strings
++share/pm/SwiftBuild_SWBGenericUnixPlatform.resources/
++share/pm/SwiftBuild_SWBGenericUnixPlatform.resources/FreeBSDLibtool.xcspec
++share/pm/SwiftBuild_SWBGenericUnixPlatform.resources/Info.plist
++share/pm/SwiftBuild_SWBGenericUnixPlatform.resources/Unix.xcspec
++share/pm/SwiftBuild_SWBGenericUnixPlatform.resources/UnixCompile.xcspec
++share/pm/SwiftBuild_SWBGenericUnixPlatform.resources/UnixLd.xcspec
++share/pm/SwiftBuild_SWBGenericUnixPlatform.resources/UnixLibtool.xcspec
++share/pm/SwiftBuild_SWBQNXPlatform.resources/
++share/pm/SwiftBuild_SWBQNXPlatform.resources/Info.plist
++share/pm/SwiftBuild_SWBQNXPlatform.resources/QNX.xcspec
++share/pm/SwiftBuild_SWBQNXPlatform.resources/QNXCompile.xcspec
++share/pm/SwiftBuild_SWBQNXPlatform.resources/QNXLd.xcspec
++share/pm/SwiftBuild_SWBQNXPlatform.resources/QNXLibtool.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/BuiltInBuildRules.xcbuildrules
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/BuiltInCompilers.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/BuiltInFileTypes.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/Clang.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/ClangModuleVerifierInputGenerator.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/ClangStatCache.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/ClangSymbolExtractor.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/ClangVerifier.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/CodeSign.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/CopyPlistFile.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/CopyStringsFile.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/Cpp.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/DefaultCompiler.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/Documentation.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/Info.plist
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/Ld.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/Lex.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/Libtool.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/PBXCp.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/PackageTypes.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/ProductTypeValidationTool.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/ProductTypes.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/StandardFileTypes.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/StripSymbols.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/Swift.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/SwiftBuildSettings.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/TAPI.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/TestEntryPointGenerator.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/Unifdef.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/Yacc.xcspec
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/en.lproj/
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/en.lproj/Apple Clang.strings
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/en.lproj/CopyPlistFile.strings
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/en.lproj/CopyStringsFile.strings
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/en.lproj/Cpp.strings
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/en.lproj/Default Compiler.strings
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/en.lproj/Ld.strings
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/en.lproj/Lex.strings
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/en.lproj/Libtool.strings
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/en.lproj/PBXCp.strings
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/en.lproj/ProductTypeValidationTool.strings
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/en.lproj/StripSymbols.strings
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/en.lproj/Swift Compiler.strings
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/en.lproj/SwiftBuildSettings.strings
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/en.lproj/Yacc.strings
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/en.lproj/com.apple.build-tools.modules-verifier.strings
++share/pm/SwiftBuild_SWBUniversalPlatform.resources/swift-stdlib-tool.xcspec
++share/pm/SwiftBuild_SWBWebAssemblyPlatform.resources/
++share/pm/SwiftBuild_SWBWebAssemblyPlatform.resources/Info.plist
++share/pm/SwiftBuild_SWBWebAssemblyPlatform.resources/WasmCompile.xcspec
++share/pm/SwiftBuild_SWBWebAssemblyPlatform.resources/WasmLd.xcspec
++share/pm/SwiftBuild_SWBWebAssemblyPlatform.resources/WasmLibtool.xcspec
++share/pm/SwiftBuild_SWBWebAssemblyPlatform.resources/WebAssembly.xcspec
++share/pm/SwiftBuild_SWBWindowsPlatform.resources/
++share/pm/SwiftBuild_SWBWindowsPlatform.resources/Info.plist
++share/pm/SwiftBuild_SWBWindowsPlatform.resources/Windows.xcspec
++share/pm/SwiftBuild_SWBWindowsPlatform.resources/WindowsCompile.xcspec
++share/pm/SwiftBuild_SWBWindowsPlatform.resources/WindowsLd.xcspec
++share/pm/SwiftBuild_SWBWindowsPlatform.resources/WindowsLibtool.xcspec
++share/pm/config.json
+Index: lang/swift/pkg/PLIST-testing
+===================================================================
+RCS file: lang/swift/pkg/PLIST-testing
+diff -N lang/swift/pkg/PLIST-testing
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/PLIST-testing	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,15 @@
++@so lib/swift/host/plugins/libTestingMacros.so
++lib/swift/openbsd/Testing.swiftcrossimport/
++lib/swift/openbsd/Testing.swiftcrossimport/Foundation.swiftoverlay
++lib/swift/openbsd/Testing.swiftmodule/
++lib/swift/openbsd/Testing.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/Testing.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/openbsd/_TestDiscovery.swiftmodule/
++lib/swift/openbsd/_TestDiscovery.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/_TestDiscovery.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++lib/swift/openbsd/_Testing_Foundation.swiftmodule/
++lib/swift/openbsd/_Testing_Foundation.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/_Testing_Foundation.swiftmodule/${SWIFT_TRIPLE}.swiftinterface
++@so lib/swift/openbsd/libTesting.so
++@static-lib lib/swift/openbsd/lib_TestDiscovery.a
++@so lib/swift/openbsd/lib_Testing_Foundation.so
+Index: lang/swift/pkg/PLIST-xctest
+===================================================================
+RCS file: lang/swift/pkg/PLIST-xctest
+diff -N lang/swift/pkg/PLIST-xctest
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ lang/swift/pkg/PLIST-xctest	15 Apr 2026 00:50:25 -0000
+@@ -0,0 +1,5 @@
++@so lib/libIndexStore.so
++lib/swift/openbsd/XCTest.swiftmodule/
++lib/swift/openbsd/XCTest.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
++lib/swift/openbsd/XCTest.swiftmodule/${SWIFT_TRIPLE}.swiftmodule
++@so lib/swift/openbsd/libXCTest.so
