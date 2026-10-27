@@ -4,7 +4,7 @@ Index: lang/swift/Makefile
 RCS file: lang/swift/Makefile
 diff -N lang/swift/Makefile
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/Makefile	9 Nov 2026 00:10:11 -0000
++++ lang/swift/Makefile	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,485 @@
 +COMMENT-main =		swift programming language
 +COMMENT-stdlib =	swift standard libraries
@@ -496,7 +496,7 @@ Index: lang/swift/distinfo
 RCS file: lang/swift/distinfo
 diff -N lang/swift/distinfo
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/distinfo	9 Nov 2026 00:10:11 -0000
++++ lang/swift/distinfo	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,72 @@
 +SHA256 (swift/0.1/swift-bootstrap-6.2.4-aarch64.tar.gz) = ZOo5+tjr09vkpmABoOIErCei3pwjA9x/A+bwh5ENNdQ=
 +SHA256 (swift/0.1/swift-bootstrap-6.2.4-amd64.tar.gz) = c/mv+UjVkTCpPbMvHeXJDs3uxD17Aa0bfVU4HrxkG1c=
@@ -579,7 +579,7 @@ Index: lang/swift/patches/patch-llvm-project_clang_lib_Driver_ToolChains_Clang_c
 RCS file: lang/swift/patches/patch-llvm-project_clang_lib_Driver_ToolChains_Clang_cpp
 diff -N lang/swift/patches/patch-llvm-project_clang_lib_Driver_ToolChains_Clang_cpp
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-llvm-project_clang_lib_Driver_ToolChains_Clang_cpp	9 Nov 2026 00:10:11 -0000
++++ lang/swift/patches/patch-llvm-project_clang_lib_Driver_ToolChains_Clang_cpp	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,15 @@
 +We currently do this in the driver if Swift is compiled with BTCFI.
 +BTCFI handling needs updating upstream.
@@ -601,7 +601,7 @@ Index: lang/swift/patches/patch-llvm-project_third-party_benchmark_include_bench
 RCS file: lang/swift/patches/patch-llvm-project_third-party_benchmark_include_benchmark_benchmark_h
 diff -N lang/swift/patches/patch-llvm-project_third-party_benchmark_include_benchmark_benchmark_h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-llvm-project_third-party_benchmark_include_benchmark_benchmark_h	9 Nov 2026 00:10:11 -0000
++++ lang/swift/patches/patch-llvm-project_third-party_benchmark_include_benchmark_benchmark_h	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,15 @@
 +Index: llvm-project/third-party/benchmark/include/benchmark/benchmark.h
 +--- llvm-project/third-party/benchmark/include/benchmark/benchmark.h.orig
@@ -623,7 +623,7 @@ Index: lang/swift/patches/patch-sourcekit-lsp_Utilities_build-script-helper_py
 RCS file: lang/swift/patches/patch-sourcekit-lsp_Utilities_build-script-helper_py
 diff -N lang/swift/patches/patch-sourcekit-lsp_Utilities_build-script-helper_py
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-sourcekit-lsp_Utilities_build-script-helper_py	9 Nov 2026 00:10:11 -0000
++++ lang/swift/patches/patch-sourcekit-lsp_Utilities_build-script-helper_py	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,25 @@
 +OpenBSD so version scheme.
 +rpath handling: Do not upstream.
@@ -659,7 +659,7 @@ Index: lang/swift/patches/patch-swift-corelibs-foundation_Sources_plutil_CMakeLi
 RCS file: lang/swift/patches/patch-swift-corelibs-foundation_Sources_plutil_CMakeLists_txt
 diff -N lang/swift/patches/patch-swift-corelibs-foundation_Sources_plutil_CMakeLists_txt
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-corelibs-foundation_Sources_plutil_CMakeLists_txt	9 Nov 2026 00:10:11 -0000
++++ lang/swift/patches/patch-swift-corelibs-foundation_Sources_plutil_CMakeLists_txt	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,14 @@
 +Do not upstream.
 +
@@ -688,7 +688,7 @@ Index: lang/swift/patches/patch-swift-docc_build-script-helper_py
 RCS file: lang/swift/patches/patch-swift-docc_build-script-helper_py
 diff -N lang/swift/patches/patch-swift-docc_build-script-helper_py
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-docc_build-script-helper_py	9 Nov 2026 00:10:11 -0000
++++ lang/swift/patches/patch-swift-docc_build-script-helper_py	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,16 @@
 +Do not upstream.
 +
@@ -711,7 +711,7 @@ Index: lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Jobs_GenericUni
 RCS file: lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Jobs_GenericUnixToolchain+LinkerSupport_swift
 diff -N lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Jobs_GenericUnixToolchain+LinkerSupport_swift
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Jobs_GenericUnixToolchain+LinkerSupport_swift	9 Nov 2026 00:10:11 -0000
++++ lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Jobs_GenericUnixToolchain+LinkerSupport_swift	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,14 @@
 +BTCFI handling needs updating upstream.
 +
@@ -732,7 +732,7 @@ Index: lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_Gene
 RCS file: lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_GenericUnixToolchain_swift
 diff -N lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_GenericUnixToolchain_swift
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_GenericUnixToolchain_swift	9 Nov 2026 00:10:11 -0000
++++ lang/swift/patches/patch-swift-driver_Sources_SwiftDriver_Toolchains_GenericUnixToolchain_swift	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,14 @@
 +Do not upstream.
 +
@@ -757,7 +757,7 @@ Index: lang/swift/patches/patch-swift-driver_Utilities_build-script-helper_py
 RCS file: lang/swift/patches/patch-swift-driver_Utilities_build-script-helper_py
 diff -N lang/swift/patches/patch-swift-driver_Utilities_build-script-helper_py
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-driver_Utilities_build-script-helper_py	9 Nov 2026 00:10:11 -0000
++++ lang/swift/patches/patch-swift-driver_Utilities_build-script-helper_py	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,37 @@
 +install-only: Upstreamed in swiftlang/swift-driver#2141.
 +rpath handling: Do not upstream.
@@ -813,7 +813,7 @@ Index: lang/swift/patches/patch-swift-lmdb_libraries_liblmdb_mdb_c
 RCS file: lang/swift/patches/patch-swift-lmdb_libraries_liblmdb_mdb_c
 diff -N lang/swift/patches/patch-swift-lmdb_libraries_liblmdb_mdb_c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift-lmdb_libraries_liblmdb_mdb_c	9 Nov 2026 00:10:11 -0000
++++ lang/swift/patches/patch-swift-lmdb_libraries_liblmdb_mdb_c	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,13 @@
 +See databases/lmdb.
 +
@@ -841,7 +841,7 @@ Index: lang/swift/patches/patch-swift_cmake_modules_AddPureSwift_cmake
 RCS file: lang/swift/patches/patch-swift_cmake_modules_AddPureSwift_cmake
 diff -N lang/swift/patches/patch-swift_cmake_modules_AddPureSwift_cmake
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift_cmake_modules_AddPureSwift_cmake	9 Nov 2026 00:10:11 -0000
++++ lang/swift/patches/patch-swift_cmake_modules_AddPureSwift_cmake	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,53 @@
 +Do not upstream.
 +
@@ -901,7 +901,7 @@ Index: lang/swift/patches/patch-swift_cmake_modules_AddSwift_cmake
 RCS file: lang/swift/patches/patch-swift_cmake_modules_AddSwift_cmake
 diff -N lang/swift/patches/patch-swift_cmake_modules_AddSwift_cmake
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift_cmake_modules_AddSwift_cmake	9 Nov 2026 00:10:11 -0000
++++ lang/swift/patches/patch-swift_cmake_modules_AddSwift_cmake	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,42 @@
 +Do not upstream.
 +
@@ -962,7 +962,7 @@ Index: lang/swift/patches/patch-swift_lib_Driver_Driver_cpp
 RCS file: lang/swift/patches/patch-swift_lib_Driver_Driver_cpp
 diff -N lang/swift/patches/patch-swift_lib_Driver_Driver_cpp
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift_lib_Driver_Driver_cpp	9 Nov 2026 00:10:11 -0000
++++ lang/swift/patches/patch-swift_lib_Driver_Driver_cpp	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,18 @@
 +May be unnecessary -- only for bootstrapping, which is broken.
 +
@@ -987,7 +987,7 @@ Index: lang/swift/patches/patch-swift_utils_build-presets_ini
 RCS file: lang/swift/patches/patch-swift_utils_build-presets_ini
 diff -N lang/swift/patches/patch-swift_utils_build-presets_ini
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swift_utils_build-presets_ini	9 Nov 2026 00:10:11 -0000
++++ lang/swift/patches/patch-swift_utils_build-presets_ini	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,41 @@
 +Index: swift/utils/build-presets.ini
 +--- swift/utils/build-presets.ini.orig
@@ -1035,7 +1035,7 @@ Index: lang/swift/patches/patch-swiftpm_Package_swift
 RCS file: lang/swift/patches/patch-swiftpm_Package_swift
 diff -N lang/swift/patches/patch-swiftpm_Package_swift
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swiftpm_Package_swift	9 Nov 2026 00:10:11 -0000
++++ lang/swift/patches/patch-swiftpm_Package_swift	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,14 @@
 +Do not upstream.
 +
@@ -1056,7 +1056,7 @@ Index: lang/swift/patches/patch-swiftpm_Utilities_bootstrap
 RCS file: lang/swift/patches/patch-swiftpm_Utilities_bootstrap
 diff -N lang/swift/patches/patch-swiftpm_Utilities_bootstrap
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/patches/patch-swiftpm_Utilities_bootstrap	9 Nov 2026 00:10:11 -0000
++++ lang/swift/patches/patch-swiftpm_Utilities_bootstrap	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,37 @@
 +WIP: upstream install-only fixes.
 +
@@ -1100,7 +1100,7 @@ Index: lang/swift/pkg/DESCR-docc
 RCS file: lang/swift/pkg/DESCR-docc
 diff -N lang/swift/pkg/DESCR-docc
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-docc	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/DESCR-docc	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,2 @@
 +Swift-DocC is a documentation compiler for Swift frameworks and packages
 +aimed at making it easy to write and publish great developer documentation.
@@ -1109,7 +1109,7 @@ Index: lang/swift/pkg/DESCR-format
 RCS file: lang/swift/pkg/DESCR-format
 diff -N lang/swift/pkg/DESCR-format
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-format	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/DESCR-format	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,2 @@
 +swift-format provides the formatting technology for SourceKit-LSP and the
 +building blocks for doing code formatting transformations.
@@ -1118,7 +1118,7 @@ Index: lang/swift/pkg/DESCR-foundation
 RCS file: lang/swift/pkg/DESCR-foundation
 diff -N lang/swift/pkg/DESCR-foundation
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-foundation	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/DESCR-foundation	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,4 @@
 +Foundation provides a base layer of functionality useful in many
 +applications, including fundamental types for numbers, data,
@@ -1129,7 +1129,7 @@ Index: lang/swift/pkg/DESCR-libdispatch
 RCS file: lang/swift/pkg/DESCR-libdispatch
 diff -N lang/swift/pkg/DESCR-libdispatch
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-libdispatch	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/DESCR-libdispatch	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,2 @@
 +Grand Central Dispatch (GCD or libdispatch) provides comprehensive
 +support for concurrent code execution on multicore hardware.
@@ -1138,7 +1138,7 @@ Index: lang/swift/pkg/DESCR-lsp
 RCS file: lang/swift/pkg/DESCR-lsp
 diff -N lang/swift/pkg/DESCR-lsp
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-lsp	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/DESCR-lsp	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,8 @@
 +SourceKit-LSP is an implementation of the Language Server Protocol (LSP)
 +for Swift and C-based languages. It provides intelligent editor
@@ -1153,7 +1153,7 @@ Index: lang/swift/pkg/DESCR-main
 RCS file: lang/swift/pkg/DESCR-main
 diff -N lang/swift/pkg/DESCR-main
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-main	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/DESCR-main	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,12 @@
 +Swift is a high-performance system programming language. It has a clean
 +and modern syntax, offers seamless access to existing C and Objective-C
@@ -1172,7 +1172,7 @@ Index: lang/swift/pkg/DESCR-stdlib
 RCS file: lang/swift/pkg/DESCR-stdlib
 diff -N lang/swift/pkg/DESCR-stdlib
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-stdlib	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/DESCR-stdlib	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,2 @@
 +The Swift standard library defines a base layer of functionality for
 +writing Swift programs.
@@ -1181,7 +1181,7 @@ Index: lang/swift/pkg/DESCR-swiftpm
 RCS file: lang/swift/pkg/DESCR-swiftpm
 diff -N lang/swift/pkg/DESCR-swiftpm
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-swiftpm	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/DESCR-swiftpm	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,5 @@
 +The Swift Package Manager is a tool for managing distribution of source
 +code, aimed at making it easy to share your code and reuse others' code.
@@ -1193,7 +1193,7 @@ Index: lang/swift/pkg/DESCR-testing
 RCS file: lang/swift/pkg/DESCR-testing
 diff -N lang/swift/pkg/DESCR-testing
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-testing	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/DESCR-testing	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,2 @@
 +Swift Testing is a package with expressive and intuitive APIs that make
 +testing your Swift code a breeze.
@@ -1202,7 +1202,7 @@ Index: lang/swift/pkg/DESCR-xctest
 RCS file: lang/swift/pkg/DESCR-xctest
 diff -N lang/swift/pkg/DESCR-xctest
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/DESCR-xctest	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/DESCR-xctest	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,2 @@
 +The XCTest library is designed to provide a common framework for writing
 +unit tests in Swift, for Swift packages and applications.
@@ -1211,7 +1211,7 @@ Index: lang/swift/pkg/PLIST-docc
 RCS file: lang/swift/pkg/PLIST-docc
 diff -N lang/swift/pkg/PLIST-docc
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-docc	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/PLIST-docc	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,57 @@
 +@bin bin/docc
 +share/docc/
@@ -1275,7 +1275,7 @@ Index: lang/swift/pkg/PLIST-format
 RCS file: lang/swift/pkg/PLIST-format
 diff -N lang/swift/pkg/PLIST-format
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-format	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/PLIST-format	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1 @@
 +@bin bin/swift-format
 Index: lang/swift/pkg/PLIST-foundation
@@ -1283,7 +1283,7 @@ Index: lang/swift/pkg/PLIST-foundation
 RCS file: lang/swift/pkg/PLIST-foundation
 diff -N lang/swift/pkg/PLIST-foundation
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-foundation	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/PLIST-foundation	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,671 @@
 +@bin bin/plutil
 +lib/swift/CoreFoundation/
@@ -1961,7 +1961,7 @@ Index: lang/swift/pkg/PLIST-libdispatch
 RCS file: lang/swift/pkg/PLIST-libdispatch
 diff -N lang/swift/pkg/PLIST-libdispatch
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-libdispatch	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/PLIST-libdispatch	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,56 @@
 +lib/swift/Block/
 +lib/swift/Block/Block.h
@@ -2024,7 +2024,7 @@ Index: lang/swift/pkg/PLIST-lsp
 RCS file: lang/swift/pkg/PLIST-lsp
 diff -N lang/swift/pkg/PLIST-lsp
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-lsp	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/PLIST-lsp	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,5 @@
 +@bin bin/sourcekit-lsp
 +@lib lib/libSwiftSourceKitClientPlugin.so.${LIBSwiftSourceKitClientPlugin_VERSION}
@@ -2036,7 +2036,7 @@ Index: lang/swift/pkg/PLIST-main
 RCS file: lang/swift/pkg/PLIST-main
 diff -N lang/swift/pkg/PLIST-main
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-main	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/PLIST-main	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,377 @@
 +bin/sdk-module-lists/
 +bin/sdk-module-lists/create-module-lists.sh
@@ -2420,7 +2420,7 @@ Index: lang/swift/pkg/PLIST-stdlib
 RCS file: lang/swift/pkg/PLIST-stdlib
 diff -N lang/swift/pkg/PLIST-stdlib
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-stdlib	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/PLIST-stdlib	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,266 @@
 +@lib lib/libIndexStore.so.${LIBIndexStore_VERSION}
 +@lib lib/libswiftDemangle.so.${LIBswiftDemangle_VERSION}
@@ -2693,7 +2693,7 @@ Index: lang/swift/pkg/PLIST-swiftpm
 RCS file: lang/swift/pkg/PLIST-swiftpm
 diff -N lang/swift/pkg/PLIST-swiftpm
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-swiftpm	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/PLIST-swiftpm	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,196 @@
 +bin/swift-build
 +bin/swift-experimental-sdk
@@ -2896,7 +2896,7 @@ Index: lang/swift/pkg/PLIST-testing
 RCS file: lang/swift/pkg/PLIST-testing
 diff -N lang/swift/pkg/PLIST-testing
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-testing	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/PLIST-testing	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,25 @@
 +@lib lib/swift/host/plugins/libTestingMacros.so.${LIBTestingMacros_VERSION}
 +lib/swift/openbsd/Testing.swiftcrossimport/
@@ -2928,7 +2928,7 @@ Index: lang/swift/pkg/PLIST-xctest
 RCS file: lang/swift/pkg/PLIST-xctest
 diff -N lang/swift/pkg/PLIST-xctest
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ lang/swift/pkg/PLIST-xctest	9 Nov 2026 00:10:11 -0000
++++ lang/swift/pkg/PLIST-xctest	9 Nov 2026 01:24:37 -0000
 @@ -0,0 +1,4 @@
 +lib/swift/openbsd/XCTest.swiftmodule/
 +lib/swift/openbsd/XCTest.swiftmodule/${SWIFT_TRIPLE}.swiftdoc
